@@ -14,16 +14,16 @@ export default function AuthLayout({ children }) {
 
         <div className="absolute inset-0 bg-gradient-to-r from-[rgba(70,174,252,0.9)] to-[rgba(70,174,252,0.9)]"></div>
 
-        <div className="absolute top-40 z-10 text-white p-8">
+        <div className="absolute top-[60px] z-10 text-white p-8">
           <div
             className={clsx(
-              "flex justify-between content-center w-40 text-black font-extrabold"
+              "flex justify-between items-center w-[115px] text-black font-black text-xl mb-5"
             )}
           >
             <Image src={"/image/logo.png"} alt="Logo" width={40} height={31} />
             <span>Socimo</span>
           </div>
-          <h1 className={clsx("font-bold mb-5", "title-text")}>
+          <h1 className={clsx("font-bold mb-5 text-3xl", "title-text")}>
             Welcome to Socimo
           </h1>
           <p className={clsx("text-base tracking-wider", "detail-text")}>
