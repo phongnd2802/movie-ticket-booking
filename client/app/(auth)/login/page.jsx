@@ -4,12 +4,13 @@ import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { User } from "lucide-react";
 import { Lock } from "lucide-react";
+import Link from "next/link";
 
 function LoginPage() {
   return (
     <div className="h-screen p-10">
       {/* Logo */}
-      <div>
+      <div className={clsx("w-8/12")}>
         <div>
           <Image src={logo} alt="This is a logo" width={40} />
         </div>
@@ -22,13 +23,23 @@ function LoginPage() {
           </span>
         </div>
 
-        <Input className={clsx("w-8/12 mb-[20px]")} placeHolder={"Email"}>
+        <Input className={clsx("mb-[20px]")} placeHolder={"Email"}>
           <User className={clsx("w-full h-full text-base")} />
         </Input>
 
-        <Input className={clsx("w-8/12")} placeHolder={"Password"}>
-          <Lock className={clsx("w-full h-full text-base")}/>
+        <Input className={clsx("mb-[30px]")} placeHolder={"Password"}>
+          <Lock className={clsx("w-full h-full text-base")} />
         </Input>
+
+        <div className={clsx("flex justify-between")}>
+          <div className="text-sm">
+            <span className="mr-1">If don&apos;t have an account?</span>
+            <Link 
+            className="text-[rgba(70,174,252,0.9)]"
+            href={"/register"}>Sign up</Link>
+          </div>
+          <Link className="text-sm text-[#b4b5c8]" href={"/forgot-password"}>Forgot Password</Link>
+        </div>
       </div>
     </div>
   );
