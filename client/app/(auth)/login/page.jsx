@@ -11,10 +11,17 @@ import { FaFacebook, FaGoogle } from "react-icons/fa";
 function LoginPage() {
   return (
     <div className="h-screen p-10 flex items-center">
+      <Image
+        className={clsx("fixed right-0 top-0")}
+        src={"/image/star-shape.png"}
+        alt="start-shape"
+        width={200}
+        height={200}
+      />
       {/* Logo */}
       <div className={clsx("w-8/12")}>
         <div>
-          <Image src={logo} alt="This is a logo" width={40} />
+          <Image src={logo} alt="This is a logo" width={40} height={40} />
         </div>
 
         {/* Login Form */}
@@ -51,7 +58,11 @@ function LoginPage() {
 
         <h4 className={clsx("text-xl font-bold mb-[20px]")}>Login With</h4>
 
-        <div className={clsx("flex justify-around items-center gap-20")}>
+        <div
+          className={clsx(
+            "flex sm:flex-col sm:gap-3 xl:justify-around xl:items-center xl:gap-20 xl:flex-row"
+          )}
+        >
           <Link
             href={"#"}
             className={clsx(

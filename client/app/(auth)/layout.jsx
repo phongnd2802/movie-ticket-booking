@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function AuthLayout({ children }) {
   return (
-    <div className={clsx("flex w-[80%] m-auto")}>
+    <div className={clsx("flex")}>
       <div className="relative w-2/5 h-screen">
         <div className="absolute inset-0 bg-[url('/image/background-image.webp')] bg-cover bg-center"></div>
 
