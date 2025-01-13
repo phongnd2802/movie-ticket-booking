@@ -9,12 +9,12 @@ export const metadata = {
 export default function AuthLayout({ children }) {
   return (
     <div className={clsx("flex")}>
-      <div class="relative w-2/5 h-screen">
-        <div class="absolute inset-0 bg-[url('/image/background-image.webp')] bg-cover bg-center"></div>
+      <div className="relative w-2/5 h-screen">
+        <div className="absolute inset-0 bg-[url('/image/background-image.webp')] bg-cover bg-center"></div>
 
-        <div class="absolute inset-0 bg-gradient-to-r from-[rgba(70,174,252,0.9)] to-[rgba(70,174,252,0.9)]"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[rgba(70,174,252,0.9)] to-[rgba(70,174,252,0.9)]"></div>
 
-        <div class="absolute top-40 z-10 text-white p-8">
+        <div className="absolute top-40 z-10 text-white p-8">
           <div
             className={clsx(
               "flex justify-between content-center w-40 text-black font-extrabold"
