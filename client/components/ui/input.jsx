@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const Input = ({ type, className, children, placeHolder }) => {
   return (
-    <div className={cn("flex border-b border-[#777]", className)}>
+    <div className={cn("flex border-b border-[#b4b5c8]", className)}>
       <label>{children}</label>
       <input
         type={type}
