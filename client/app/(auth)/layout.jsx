@@ -21,10 +21,10 @@ export default function AuthLayout({ children }) {
             )}
           >
             <Image src={"/image/logo.png"} alt="Logo" width={40} height={31} />
-            <span>Socimo</span>
+            <span>MovieTicket</span>
           </div>
           <h1 className={clsx("font-bold mb-5 text-3xl", "title-text")}>
-            Welcome to Socimo
+            Welcome to MovieTicket
           </h1>
           <p className={clsx("text-base tracking-wider", "detail-text")}>
             Hệ thống cho phép bạn lựa chọn suất chiếu, rạp phim yêu thích và ghế
