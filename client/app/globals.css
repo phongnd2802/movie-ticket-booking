@@ -2,9 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+<<<<<<< HEAD
+=======
 body {
   font-size: 2rem;
 }
+>>>>>>> 204c55f55b03fb250dc694740391bedd013761f9
 
 @layer utilities {
   .text-balance {

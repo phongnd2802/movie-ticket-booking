@@ -20,7 +20,7 @@ export default function AuthLayout({ children }) {
               "flex justify-between content-center w-40 text-black font-extrabold"
             )}
           >
-            <Image src={"/image/logo.png"} width={40} height={31} />
+            <Image src={"/image/logo.png"} alt="Logo" width={40} height={31} />
             <span>Socimo</span>
           </div>
           <h1 className={clsx("font-bold mb-5", "title-text")}>
@@ -31,7 +31,7 @@ export default function AuthLayout({ children }) {
             ngồi chỉ với vài thao tác đơn giản. Ngoài ra, bạn còn có thể cập
             nhật các bộ phim mới nhất, đọc nhận xét từ cộng đồng và chia sẻ ý
             kiến của mình về các tác phẩm điện ảnh. Trải nghiệm đặt vé chưa bao
-            giờ dễ dàng và thú vị đến thế!"
+            giờ dễ dàng và thú vị đến thế
           </p>
         </div>
       </div>
