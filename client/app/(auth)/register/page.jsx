@@ -100,6 +100,18 @@ function RegisterPage() {
           <span className="mr-1">You have an account?</span>
           <Link className="text-[rgba(70,174,252,0.9)]" href={"/login"}>Sign in</Link>
         </div>
+
+        <p className={clsx("fixed bottom-3 text-[#b4b5c8] text-sm")}>
+          By Signing up you are accepting the Service Terms{" "}
+          <Link className={clsx("text-[rgba(70,174,252,0.9)]")} href={"#"}>
+            Privacy Policy
+          </Link>{" "}
+          and use of{" "}
+          <Link className={clsx("text-[rgba(70,174,252,0.9)]")} href={"#"}>
+            Cookies{" "}
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

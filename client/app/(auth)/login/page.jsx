@@ -83,7 +83,7 @@ function LoginPage() {
           </Link>
         </div>
 
-        <p className={clsx("fixed bottom-6 text-[#b4b5c8] text-sm")}>
+        <p className={clsx("fixed bottom-3 text-[#b4b5c8] text-sm")}>
           By Signing up you are accepting the Service Terms{" "}
           <Link className={clsx("text-[rgba(70,174,252,0.9)]")} href={"#"}>
             Privacy Policy
