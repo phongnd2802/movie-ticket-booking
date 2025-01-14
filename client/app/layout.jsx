@@ -1,12 +1,11 @@
 import "./globals.css";
-
+import { lato } from "@/ui/fonts";
 function RootLayout({ children }) {
   return (
-    <html>
-      <body>
-        <h1>this is layout root</h1>
-        <>{children}</>
-      </body>
+    <html lang="en">
+      <body className={`${lato.className} antialiased bg-white`}>
+        <main className="m-auto">{children}</main>
+      </body> 
     </html>
   );
 }
