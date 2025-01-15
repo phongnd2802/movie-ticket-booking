@@ -4,5 +4,5 @@ export const metadata = {
 };
 
 export default function HomeLayout({ children }) {
-  return <>{children}</>;
+  return <div className="py-4">{children}</div>;
 }
