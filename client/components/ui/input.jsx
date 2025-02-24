@@ -1,5 +1,4 @@
 import * as React from "react";
-import clsx from "clsx";
 import { cn } from "@/lib/utils";
 
 const Input = ({ type, className, children, placeHolder }) => {

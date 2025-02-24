@@ -1,10 +1,22 @@
 import "./globals.css";
-import { lato } from "@/ui/fonts";
+import { Nunito } from "next/font/google";
+import Header from "@/components/page/header";
+
+const nutino = Nunito({ subsets: ["latin"], weights: [400, 700] });
+
+export const metadata = {
+  title: "Galaxy Cinema: Hệ thống rạp chiếu phim",
+  description: "Galaxy Cinema: Hệ thống rạp chiếu phim",
+};
+
 function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${lato.className} antialiased bg-white`}>
-        <main className="m-auto">{children}</main>
+      <body className={`${nutino.className} antialiased bg-white`}>
+        <main className="m-auto">
+          <Header />
+          {children}
+        </main>
       </body>
     </html>
   );

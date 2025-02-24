@@ -9,6 +9,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        textOrange: "rgb(249, 115, 22)",
+        backgroundHover: "rgba(0, 0, 0, 0.5)",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -55,6 +57,13 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      screens: {
+        xs: "375px",
+        sm: "638px",
+        ssm: "900px",
+        md: "1018px",
+        lg: "1310px",
       },
     },
   },
