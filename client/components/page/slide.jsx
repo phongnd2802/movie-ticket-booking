@@ -1,89 +1,52 @@
 "use client";
 import { useState, useEffect } from "react";
-
+import Circle from "./circle";
 import Image from "./imagekit";
 
-const slides = [
-  {
-    id: 1,
-    image: "https://your-image-link-1.jpg",
-  },
-  {
-    id: 2,
-    image: "https://your-image-link-2.jpg",
-  },
-  {
-    id: 3,
-    image: "https://your-image-link-3.jpg",
-  },
+const IMAGE = [
+  "page/samsung.jpg",
+  "page/captam-slide",
+  "page/interstellar.jpg",
 ];
 
 export default function Slide() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const slideCount = slides.length;
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Chuyển đổi slide tự động mỗi 5 giây
   useEffect(() => {
     const interval = setInterval(() => {
-      nextSlide();
-    }, 1000);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % IMAGE.length);
+    }, 2000);
+
     return () => clearInterval(interval);
-  }, [currentSlide]);
+  }, []);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === slideCount - 1 ? 0 : prev + 1));
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slideCount - 1 : prev - 1));
-  };
+  const leftIndex = (currentIndex - 1 + IMAGE.length) % IMAGE.length;
+  const centerIndex = currentIndex;
+  const rightIndex = (currentIndex + 1) % IMAGE.length;
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto overflow-hidden">
-      {/* Danh sách các slides */}
-      <div
-        className="flex transition-transform duration-700 ease-in-out"
-        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-      >
-        {slides.map((slide, index) => (
-          <div key={slide.id} className="w-full flex-shrink-0">
-            <Image
-              path={"page/captam-slide"}
-              width={1360}
-              height={450}
-              className="w-full h-[400px] object-cover rounded-lg"
-            />
-          </div>
-        ))}
+    <div className="relative w-full overflow-hidden flex justify-between">
+      <div className="w-[15%] pr-2 overflow-hidden max-mds:pr-0 max-md:hidden transition-transform duration-700 ease-in-out">
+        <Image width={1360} height={450} path={IMAGE[leftIndex]} />
       </div>
-
-      {/* Nút Previous */}
-      <button
-        onClick={prevSlide}
-        className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
+      <div
+        className="flex transition-transform duration-700 ease-in-out
+        w-[70%] max-mds:px-0 px-2 max-md:w-full relative max-md:h-full"
       >
-        ❮
-      </button>
-
-      {/* Nút Next */}
-      <button
-        onClick={nextSlide}
-        className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
-      >
-        ❯
-      </button>
-
-      {/* Dots Indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            className={`w-3 h-3 rounded-full ${
-              index === currentSlide ? "bg-white" : "bg-gray-400"
-            }`}
-            onClick={() => setCurrentSlide(index)}
-          />
-        ))}
+        <Image
+          className="max-md:h-full max-md:w-full"
+          width={1360}
+          height={450}
+          path={IMAGE[centerIndex]}
+        />
+        <div className="absolute bottom-2 left-[50%] flex gap-2 translate-x-[-50%]">
+          {IMAGE.map((_, index) => (
+            <Circle key={index} isShow={index === centerIndex} />
+          ))}
+        </div>
+      </div>
+      <div className="w-[15%] pl-2 overflow-hidden max-mds:pl-0 max-md:hidden transition-transform duration-700 ease-in-out">
+        <Image width={1360} height={450} path={IMAGE[rightIndex]} />
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ function Image({ path, alt, width, height, className }) {
       alt={alt}
       width={width}
       height={height}
-      className={className}
+      className={`w-full h-full object-cover ${className}`}
     />
   );
 }

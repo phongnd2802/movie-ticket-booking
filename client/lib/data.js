@@ -39,3 +39,86 @@ export const navItems = [
     ],
   },
 ];
+
+export const listMovie = [
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+  {
+    title: "Võ luyện đỉnh phong",
+    width: 300,
+    height: 500,
+  },
+];

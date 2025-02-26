@@ -13,10 +13,7 @@ function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${nutino.className} antialiased bg-white`}>
-        <main className="m-auto">
-          <Header />
-          {children}
-        </main>
+        <main className="m-auto">{children}</main>
       </body>
     </html>
   );

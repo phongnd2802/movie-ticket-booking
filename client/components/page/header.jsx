@@ -8,7 +8,7 @@ import Navigation from "./navigation-menu";
 function Header() {
   return (
     <header className="flex items-center justify-center p-6 ">
-      <div className="flex items-center justify-between w-full max-w-[80%] max-sm:max-w-[100%] max-lg:max-w-[80%] max-md:max-w-[85%] max-ssm:max-w-[90%]">
+      <div className="flex items-center justify-between w-full max-w-[85%] max-sm:max-w-[100%] max-lg:max-w-[80%] max-md:max-w-[85%] max-ssm:max-w-[90%]">
         <div className="flex items-center gap-6 max-md:hidden">
           <div>
             <Image
