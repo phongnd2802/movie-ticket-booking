@@ -20,4 +20,6 @@ public class CinemaEntity extends BaseEntity {
     int cinemaId;
 
     String cinemaName;
+
+
 }

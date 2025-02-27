@@ -77,3 +77,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes slide-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.3333%);
+  }
+}
+
+.slide-animation {
+  animation: slide-left 0.5s ease-in-out;
+}

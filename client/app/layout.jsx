@@ -1,6 +1,5 @@
 import "./globals.css";
 import { Nunito } from "next/font/google";
-import Header from "@/components/page/header";
 
 const nutino = Nunito({ subsets: ["latin"], weights: [400, 700] });
 

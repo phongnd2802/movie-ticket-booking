@@ -1,12 +1,11 @@
 package com.backend.movieticketbooking.entities.movies;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 
 @Entity
@@ -22,5 +21,21 @@ public class GenreEntity extends BaseEntity {
     int genreId;
 
     String genreName;
+
+    @ManyToMany
+    @JoinTable(
+        name = "movie_genre",
+        joinColumns = @JoinColumn(name = "genre_id"),
+        inverseJoinColumns = @JoinColumn(name = "movie_id")
+    )
+    List<MovieEntity> movie;
+
+    @ManyToMany
+    @JoinTable(
+        name = "movie_actor",
+        joinColumns = @JoinColumn(name = "genre_id"),
+        inverseJoinColumns = @JoinColumn(name = "actor_id")
+    )
+    List<ActorEntity> actor;
 
 }

@@ -1,15 +1,14 @@
 package com.backend.movieticketbooking.entities.movies;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.backend.movieticketbooking.entities.show.ShowEntity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 
 @Entity
@@ -49,5 +48,11 @@ public class MovieEntity extends BaseEntity {
 
     String movieProducer;
 
+    @ManyToMany(mappedBy = "movie")
+    List<GenreEntity> genre;
+
+    @OneToMany
+    @JoinColumn(name = "show_id")
+    List<ShowEntity> show;
 
 }
