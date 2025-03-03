@@ -5,7 +5,7 @@ services:
     container_name: postgres_container
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+      - "5555:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
@@ -20,7 +20,7 @@ services:
     container_name: redis_container
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6666:6379"
     environment:
       REDIS_PASSWORD: secret
       REDIS_PORT: 6379
