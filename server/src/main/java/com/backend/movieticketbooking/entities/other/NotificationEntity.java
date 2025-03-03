@@ -1,10 +1,8 @@
 package com.backend.movieticketbooking.entities.other;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.backend.movieticketbooking.entities.auth.UserEntity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -18,8 +16,13 @@ import lombok.experimental.FieldDefaults;
 public class NotificationEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "notification_id")
     int notificationId;
 
     String notificationContent;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    UserEntity user;
 
 }

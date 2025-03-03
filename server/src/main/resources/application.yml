@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: server
+  datasource:
+    url: jdbc:postgresql://localhost:5432/movie-ticket-booking
+    username: postgres
+    password: secret
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true

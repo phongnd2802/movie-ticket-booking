@@ -1,15 +1,17 @@
 package com.backend.movieticketbooking.entities.booking;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
+import com.backend.movieticketbooking.entities.cinema.CinemaHallEntity;
+import com.backend.movieticketbooking.entities.cinema.CinemaHallSeatEntity;
+import com.backend.movieticketbooking.entities.other.FoodEntity;
+import com.backend.movieticketbooking.entities.show.ShowEntity;
 import com.backend.movieticketbooking.enums.BookingStateEnum;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Entity
@@ -21,6 +23,7 @@ import java.math.BigDecimal;
 public class BookingEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "booking_id")
     String bookingId;
 
     BigDecimal bookingTotalPrice;
@@ -28,4 +31,24 @@ public class BookingEntity extends BaseEntity {
     BookingStateEnum bookingState;
 
     int bookingNumberOfSeats;
+
+    @ManyToOne
+    @JoinColumn(name = "show_id", nullable = false)
+    ShowEntity show;
+
+    @OneToMany
+    @JoinColumn(name = "cinema_hall_seat_id")
+    List<CinemaHallSeatEntity> cinemaHallSeats;
+
+    @OneToMany
+    @JoinColumn(name = "coupon_id")
+    List<CouponEntity> coupons;
+
+    @ManyToMany
+    @JoinTable(
+        name = "booking_food",
+        joinColumns = @JoinColumn(name = "booking_id"),
+        inverseJoinColumns = @JoinColumn(name = "food_id")
+    )
+    List<FoodEntity> foods;
 }

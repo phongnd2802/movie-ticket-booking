@@ -18,6 +18,7 @@ public class GenreEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "genre_id")
     int genreId;
 
     String genreName;
@@ -28,7 +29,7 @@ public class GenreEntity extends BaseEntity {
         joinColumns = @JoinColumn(name = "genre_id"),
         inverseJoinColumns = @JoinColumn(name = "movie_id")
     )
-    List<MovieEntity> movie;
+    List<MovieEntity> movies;
 
     @ManyToMany
     @JoinTable(
@@ -36,6 +37,6 @@ public class GenreEntity extends BaseEntity {
         joinColumns = @JoinColumn(name = "genre_id"),
         inverseJoinColumns = @JoinColumn(name = "actor_id")
     )
-    List<ActorEntity> actor;
+    List<ActorEntity> actors;
 
 }

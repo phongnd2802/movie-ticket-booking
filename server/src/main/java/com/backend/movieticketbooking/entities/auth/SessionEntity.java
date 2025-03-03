@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class SessionEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "session_id")
     String sessionId;
 
     String refreshToken;
@@ -35,4 +36,7 @@ public class SessionEntity extends BaseEntity {
 
     LocalDateTime expiresAt;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    UserEntity user;
 }

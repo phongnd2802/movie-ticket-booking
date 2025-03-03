@@ -1,12 +1,12 @@
 package com.backend.movieticketbooking.entities.cinema;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.backend.movieticketbooking.entities.show.ShowEntity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Entity
 @Setter
@@ -17,9 +17,15 @@ import lombok.experimental.FieldDefaults;
 public class CinemaHallEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "cinema_hall_id")
     int cinemaHallId;
 
     String cinemaHallName;
 
     int cinemaSeatsNumberAvailable;
+
+
+    @OneToMany
+    @JoinColumn(name = "cenima_hall_id")
+    List<CinemaHallSeatEntity> cinemaHallSeats;
 }

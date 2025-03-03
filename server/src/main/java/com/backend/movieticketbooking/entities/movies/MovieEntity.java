@@ -20,6 +20,7 @@ import java.util.List;
 public class MovieEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "movie_id")
     int movieId;
 
     String movieName;
@@ -48,11 +49,14 @@ public class MovieEntity extends BaseEntity {
 
     String movieProducer;
 
-    @ManyToMany(mappedBy = "movie")
-    List<GenreEntity> genre;
+    @ManyToMany(mappedBy = "movies")
+    List<GenreEntity> genres;
 
     @OneToMany
     @JoinColumn(name = "show_id")
-    List<ShowEntity> show;
+    List<ShowEntity> shows;
+
+    @ManyToMany(mappedBy = "movies")
+    List<ActorEntity> actors;
 
 }

@@ -2,10 +2,7 @@ package com.backend.movieticketbooking.entities.other;
 
 
 import com.backend.movieticketbooking.entities.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -18,6 +15,7 @@ import lombok.experimental.FieldDefaults;
 public class AddressEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "address_id")
     int addressId;
 
     String province;

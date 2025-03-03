@@ -20,7 +20,7 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.4.1")
-
+    implementation("org.postgresql:postgresql:42.7.3")
     compileOnly("org.projectlombok:lombok:1.18.24")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -2,6 +2,8 @@ package com.backend.movieticketbooking.entities.auth;
 
 
 import com.backend.movieticketbooking.entities.BaseEntity;
+import com.backend.movieticketbooking.entities.booking.BookingEntity;
+import com.backend.movieticketbooking.entities.other.NotificationEntity;
 import com.backend.movieticketbooking.enums.PermissionEnum;
 import com.backend.movieticketbooking.enums.RoleEnum;
 import jakarta.persistence.*;
@@ -22,6 +24,7 @@ public class UserEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     int userId;
 
     String userEmail;
@@ -34,8 +37,7 @@ public class UserEntity extends BaseEntity {
 
     boolean userDeleted;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     List<SessionEntity> userSessions;
 
 
@@ -52,4 +54,11 @@ public class UserEntity extends BaseEntity {
                 .flatMap(role -> role.getPermissions().stream())
                 .collect(Collectors.toSet());
     }
+
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    List<BookingEntity> bookings;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<NotificationEntity> notifications;
 }
