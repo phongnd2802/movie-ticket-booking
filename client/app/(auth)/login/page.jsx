@@ -7,6 +7,7 @@ import { Lock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
+import LoginForm from "./login-form";
 
 function LoginPage() {
   return (
@@ -30,18 +31,8 @@ function LoginPage() {
           <span className={clsx("ml-1 font-black text-xl")}>MovieTicket!</span>
         </div>
 
-        <Input className={clsx("mb-[20px]")} placeHolder={"Email"}>
-          <User className={clsx("w-full h-full text-base")} />
-        </Input>
-
-        <Input
-          className={clsx("mb-[30px]")}
-          placeHolder={"Password"}
-          type={"password"}
-        >
-          <Lock className={clsx("w-full h-full text-base")} />
-        </Input>
-
+        <LoginForm />
+        
         <div className={clsx("flex justify-between mb-[20px]")}>
           <div className="text-sm">
             <span className="mr-1">If don&apos;t have an account?</span>
@@ -54,7 +45,6 @@ function LoginPage() {
           </Link>
         </div>
 
-        <Button className={clsx("w-full mb-[20px]")}>Login</Button>
 
         <h4 className={clsx("text-xl font-bold mb-[20px]")}>Login With</h4>
 
