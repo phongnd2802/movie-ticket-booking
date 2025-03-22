@@ -9,7 +9,10 @@ import com.backend.movieticketbooking.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,7 +23,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Getter
 @Setter
-public class UserEntity extends BaseEntity {
+public class UserEntity extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,4 +64,26 @@ public class UserEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<NotificationEntity> notifications;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> (GrantedAuthority) role::name)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getPassword() {
+        return userPassword;
+    }
+
+    @Override
+    public String getUsername() {
+        return userEmail;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return userVerified;
+    }
 }
