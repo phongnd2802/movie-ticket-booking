@@ -1,20 +1,22 @@
-package com.backend.movieticketbooking.services.cache.distributed;
+package com.backend.movieticketbooking.services.cache.distributed.impl;
 
+import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Component
+
+@Service
 @Slf4j
-public class RedisDistributedServiceImpl implements RedisDistributedService{
+public class RedisDistributedCacheServiceImpl implements DistributedCacheService {
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -27,6 +29,15 @@ public class RedisDistributedServiceImpl implements RedisDistributedService{
             return;
         }
         redisTemplate.opsForValue().set(key, value);
+    }
+
+    @Override
+    public void setStringTTL(String key, String value, long timeout, TimeUnit unit) {
+        if (!StringUtils.hasLength(key)) {
+            return;
+        }
+
+        redisTemplate.opsForValue().set(key, value, timeout, unit);
     }
 
     @Override

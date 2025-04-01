@@ -22,7 +22,7 @@ spring:
   jpa:
     database: postgresql
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
@@ -45,7 +45,50 @@ spring:
           max-wait: -1ms #Maximum wait time to get a connection from the pool (-1 for no limit)
       connect-timeout: 30000 #Connection timeout (in milliseconds)
 
+  mail:
+    port: 587
+    host: smtp.gmail.com
+    password: aymqvnmmhkjbuytz
+    username: duyphong02802@gmail.com
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  kafka:
+    bootstrap-servers: localhost:9193
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 0
+      batch-size: 16384
+      buffer-memory: 33554422
+    consumer:
+      group-id: otp-group-id
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      auto-commit-interval: 100
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      missing-topics-fatal: false
+      ack-mode: manual_immediate
+  threads:
+    virtual:
+      enabled: true
+
 minio:
   endpoint: http://127.0.0.1:9000
-  access-key: DDTB8XJEcBivsq5y8MiK
-  secret-key: pxav5ZPO08jCHHQuK3ij2rnpC0tcHUNOt7bI1P30
+  access-key: GokmCJ8vcRjxE1svgv8X
+  secret-key: ClN9oGx9y9VZOlUyNM5K2EgJCBBFDCPpR48ugB2i
+
+jwt:
+  secret: A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2
+  access:
+    expiration: 900000
+  refresh:
+    expiration: 604800000

@@ -1,42 +1,357 @@
 package com.backend.movieticketbooking.services.auth.impl;
 
+import com.backend.movieticketbooking.dtos.auth.UserDTO;
 import com.backend.movieticketbooking.dtos.auth.request.LoginRequest;
 import com.backend.movieticketbooking.dtos.auth.request.RegisterRequest;
+import com.backend.movieticketbooking.dtos.auth.request.ResendOTPRequest;
 import com.backend.movieticketbooking.dtos.auth.request.VerifyOTPRequest;
 import com.backend.movieticketbooking.dtos.auth.response.LoginResponse;
+import com.backend.movieticketbooking.dtos.auth.response.RefreshTokenResponse;
 import com.backend.movieticketbooking.dtos.auth.response.RegisterResponse;
-import com.backend.movieticketbooking.dtos.auth.response.VerifyOTPResponse;
+import com.backend.movieticketbooking.entities.auth.SessionEntity;
+import com.backend.movieticketbooking.exceptions.InternalServerException;
+import com.backend.movieticketbooking.repositories.SessionRepository;
+import com.backend.movieticketbooking.security.jwt.JwtProvider;
+import com.backend.movieticketbooking.security.userprinciple.UserDetailService;
+import com.backend.movieticketbooking.security.userprinciple.UserPrinciple;
+import com.backend.movieticketbooking.services.kafka.message.OtpMessage;
+import com.backend.movieticketbooking.entities.auth.ProfileEntity;
+import com.backend.movieticketbooking.entities.auth.UserEntity;
+import com.backend.movieticketbooking.enums.RoleEnum;
+import com.backend.movieticketbooking.exceptions.BadRequestException;
+import com.backend.movieticketbooking.mapper.ProfileMapper;
+import com.backend.movieticketbooking.mapper.UserMapper;
+import com.backend.movieticketbooking.repositories.ProfileRepository;
+import com.backend.movieticketbooking.repositories.UserRepository;
 import com.backend.movieticketbooking.services.auth.AuthService;
+import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
+import com.backend.movieticketbooking.services.kafka.KafkaProducer;
+import com.backend.movieticketbooking.utils.CryptoUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
+    @Autowired
+    private DistributedCacheService redisDistributedService;
+
+    @Autowired
+    private JwtProvider jwtService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ProfileRepository profileRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private ProfileMapper profileMapper;
+
+    @Autowired
+    private KafkaProducer kafkaProducer;
+
+    @Autowired
+    private UserDetailService userDetailService;
+
+    @Autowired
+    private SessionRepository sessionRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final Long OTP_EXPIRED_TIME = 60L;
+
     @Override
+    @Transactional
     public LoginResponse login(LoginRequest request) {
-        return null;
+        Optional<UserEntity> userEntity = userRepository.findByUserEmail(request.getEmail());
+        if (userEntity.isEmpty()) {
+            throw new BadRequestException("Email or password is incorrect");
+        }
+        UserDetails userDetails = userDetailService.fromUserEntity(userEntity.get());
+        if (userDetails == null) {
+            throw new BadRequestException("Email or password is incorrect");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
+            throw new BadRequestException("Email or password is incorrect");
+        }
+
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        UUID subjectUUID = UUID.randomUUID();
+        String accessToken = jwtService.createAccessToken(authentication, subjectUUID.toString());
+        String refreshToken = jwtService.createRefreshToken(authentication, subjectUUID.toString());
+
+        ProfileEntity profileEntity = profileRepository.findByUser(userEntity.get());
+        if (profileEntity == null){
+           throw new BadRequestException("Profile not found");
+        }
+
+        UserPrinciple userPrinciple = (UserPrinciple) userDetailService.withUserProfile(userEntity.get(), profileEntity);
+        SessionEntity sessionEntity = SessionEntity.builder()
+                .sessionId(subjectUUID.toString())
+                .refreshToken(refreshToken)
+                .refreshTokenUsed(null)
+                .userAgent(request.getUserAgent())
+                .userLoginIp(request.getLoginIp())
+                .userLoginTime(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(7))
+                .user(userEntity.get())
+                .build();
+        entityManager.persist(sessionEntity);
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .profile(UserDTO.builder()
+                        .userEmail(userPrinciple.getUserEmail())
+                        .userName(userPrinciple.getUsername())
+                        .userGender(userPrinciple.isUserGender())
+                        .userBirthday(userPrinciple.getUserBirthday())
+                        .userMobile(userPrinciple.getUserMobile())
+                        .build())
+                .build();
     }
 
     @Override
-    public RegisterResponse register(RegisterRequest request) {
-        return null;
+    @Transactional
+    public RegisterResponse register(RegisterRequest request) throws BadRequestException {
+        // 1. Hash Email
+        log.info("Email address: {}",request.getUserEmail());
+        String hashedEmail = CryptoUtil.sha256Hash(request.getUserEmail());
+        log.info("Hashed email address: {}",hashedEmail);
+
+        // 2. Check if email already exists
+        Optional<UserEntity> userFound = userRepository.findByUserEmail(request.getUserEmail());
+        if (userFound.isPresent()) {
+            // Check if the user is currently in the authentication session
+            boolean exists = redisDistributedService.exists(getUserKeySession(hashedEmail));
+            if (!exists) {
+                throw new BadRequestException("Email already exists");
+            }
+            return RegisterResponse.builder()
+                    .email(userFound.get().getUserEmail())
+                    .token(CryptoUtil.encodeBase64(hashedEmail))
+                    .build();
+        }
+
+        // 3. Hash Password
+        String hashedPassword = passwordEncoder.encode(request.getUserPassword());
+        log.info("Hashed password: {}",hashedPassword);
+
+        // Generate OTP for user verification
+        String newOtp = generateOtp();
+        log.info("New otp: {}", newOtp);
+
+
+        // 4. Save user data to the User table
+        UserEntity userEntity = userMapper.toUserEntity(request);
+
+        Set<RoleEnum> userRoles = new HashSet<>();
+        userRoles.add(RoleEnum.CUSTOMER); // Add the 'CUSTOMER' role
+        userEntity.setRoles(userRoles);
+        userEntity.setUserPassword(hashedPassword);
+        userEntity.setUserOtp(newOtp);
+        userEntity.setUserVerified(false);
+        userEntity.setUserDeleted(false);
+
+        userRepository.save(userEntity);
+
+        // 5. Save user profile data to the Profile table
+        ProfileEntity profileEntity = profileMapper.toProfileEntity(request);
+        profileEntity.setUser(userEntity);
+        profileRepository.save(profileEntity);
+
+        // 6. Store OTP in Redis for session and verification purposes
+        redisDistributedService.setStringTTL(getUserKeyOtp(hashedEmail), newOtp, OTP_EXPIRED_TIME, TimeUnit.SECONDS);
+        redisDistributedService.setStringTTL(getUserKeySession(hashedEmail), "1", OTP_EXPIRED_TIME, TimeUnit.SECONDS);
+
+        // 7. Send OTP message to Kafka for further processing
+//        try {
+//            OtpMessage message = new OtpMessage(userEntity.getUserEmail(), newOtp);
+//            String messageJson = objectMapper.writeValueAsString(message);
+//            kafkaProducer.sendSync("otp-auth-topic", messageJson);
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace();
+//            throw new RuntimeException(e);
+//        }
+
+        // 8. Return the registration response with the encoded hashed email
+        return RegisterResponse.builder()
+                .email(userEntity.getUserEmail())
+                .token(CryptoUtil.encodeBase64(hashedEmail))
+                .build();
     }
 
     @Override
-    public VerifyOTPResponse verifyOTP(VerifyOTPRequest request) {
-        return null;
+    public Boolean verifyOTP(VerifyOTPRequest request) throws BadRequestException{
+        try {
+            String token = CryptoUtil.decodeBase64(request.getToken());
+            Long ttl = redisDistributedService.getTTL(getUserKeySession(token));
+            if (ttl == null || ttl <= 0) {
+                throw new BadRequestException("Invalid token");
+            }
+
+            String otpRedis = redisDistributedService.getString(getUserKeyOtp(token));
+            if (!request.getOtp().equals(otpRedis)) {
+                throw new BadRequestException("Invalid otp");
+            }
+
+            Optional<UserEntity> userEntity = userRepository.findByUserEmail(request.getEmail());
+            if (userEntity.isEmpty()) {
+                throw new BadRequestException("Invalid email");
+            }
+
+            userEntity.get().setUserVerified(true);
+            userRepository.save(userEntity.get());
+
+            redisDistributedService.deleteKey(getUserKeyOtp(token));
+            redisDistributedService.deleteKey(getUserKeySession(token));
+            return true;
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid token");
+        }
     }
 
     @Override
-    public boolean logout(String token) {
-        return false;
+    public void logout(String token) {
+        Claims claims = jwtService.getTokenClaims(token);
+        if (claims == null) {
+            throw new InternalServerException("Error get claims token");
+        }
+
+        sessionRepository.deleteById(claims.getSubject());
+
+        Long remainingTime = jwtService.getTokenExpiration(claims) / 1000;
+        redisDistributedService.setStringTTL(getUserKeyBlackList(claims.getSubject()), "1", remainingTime, TimeUnit.SECONDS);
     }
 
     @Override
-    public LoginResponse refreshToken(String refreshToken) {
-        return null;
+    @Transactional
+    public RefreshTokenResponse refreshToken(String refreshToken) {
+        Claims claims = jwtService.getTokenClaims(refreshToken);
+        if (claims == null) {
+            throw new InternalServerException("Error get claims token");
+        }
+
+        Optional<SessionEntity> foundRefreshTokenUsed = sessionRepository.findByRefreshTokenUsed(refreshToken);
+        if (foundRefreshTokenUsed.isPresent()) {
+            if (foundRefreshTokenUsed.get().getRefreshTokenUsed().equals(refreshToken)) {
+                throw new BadRequestException("Suspicious activity detected: Refresh token has been used.");
+            }
+        }
+
+        Optional<SessionEntity> foundSession = sessionRepository.findById(claims.getSubject());
+        if (foundSession.isEmpty()) {
+            throw new BadRequestException("Session not found");
+        }
+
+        SessionEntity session = foundSession.get();
+
+        if (!session.getRefreshToken().equals(refreshToken)) {
+            throw new BadRequestException("Refresh token does not match");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String newAccessToken = jwtService.createAccessToken(authentication, session.getSessionId());
+        String newRefreshToken = jwtService.createRefreshToken(authentication, session.getSessionId());
+
+        session.setRefreshTokenUsed(refreshToken);
+        session.setRefreshToken(newRefreshToken);
+        session.setExpiresAt(LocalDateTime.now().plusDays(7));
+        entityManager.merge(session);
+
+        return RefreshTokenResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
+    }
+
+    @Override
+    public Long getTimeToLiveOTP(String token) {
+        try {
+            Long ttl = redisDistributedService.getTTL(getUserKeyOtp(CryptoUtil.decodeBase64(token)));
+            if (ttl == null || ttl <= 0) {
+                throw new BadRequestException("Invalid token");
+            }
+            return ttl;
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid token");
+        }
+    }
+
+    @Override
+    public void resendOTP(ResendOTPRequest request) {
+        try {
+            String token = CryptoUtil.decodeBase64(request.getToken());
+            boolean exist = redisDistributedService.exists(getUserKeySession(token));
+            if (exist) {
+                throw new BadRequestException("OTP is still valid. Please use the existing OTP.");
+            }
+
+            String newOtp = generateOtp();
+            log.info("New otp: {}", newOtp);
+
+            redisDistributedService.setStringTTL(getUserKeyOtp(token), newOtp, OTP_EXPIRED_TIME, TimeUnit.SECONDS);
+            redisDistributedService.setStringTTL(getUserKeySession(token), "1", OTP_EXPIRED_TIME, TimeUnit.SECONDS);
+
+            // Send OTP message to Kafka for further processing
+            OtpMessage message = new OtpMessage(request.getEmail(), newOtp);
+            String messageJson = objectMapper.writeValueAsString(message);
+            kafkaProducer.sendSync("otp-auth-topic", messageJson);
+
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid token");
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getUserKeySession(String hashedEmail) {
+        return "usr:"+hashedEmail+":"+"session";
+    }
+
+    private String getUserKeyOtp(String hashedEmail) {
+        return "usr:"+hashedEmail+":"+"otp";
+    }
+
+    private String getUserKeyBlackList(String subjectUUID) {
+        return "usr:"+subjectUUID+":"+"blacklist";
+    }
+    private String generateOtp() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000);
+        return String.valueOf(otp);
     }
 }

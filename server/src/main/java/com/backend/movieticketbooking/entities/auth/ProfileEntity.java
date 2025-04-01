@@ -1,10 +1,7 @@
 package com.backend.movieticketbooking.entities.auth;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -19,8 +16,10 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProfileEntity extends BaseEntity {
     @Id
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Tự động tăng ID
+    int profileId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
     UserEntity user;
 
     String userName;
@@ -32,5 +31,4 @@ public class ProfileEntity extends BaseEntity {
     boolean userGender;
 
     LocalDate userBirthday;
-
 }

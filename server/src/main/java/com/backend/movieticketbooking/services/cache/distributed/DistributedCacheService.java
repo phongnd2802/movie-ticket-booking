@@ -1,10 +1,11 @@
 package com.backend.movieticketbooking.services.cache.distributed;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 /**
- * Interface for interacting with a Redis distributed caching system.
+ * Interface for interacting with a distributed caching system.
  */
-public interface RedisDistributedService {
+public interface DistributedCacheService {
 
     /**
      * Stores a string value in Redis.
@@ -13,6 +14,8 @@ public interface RedisDistributedService {
      * @param value the string value to be stored
      */
     void setString(String key, String value);
+
+    void setStringTTL(String key, String value, long timeout, TimeUnit unit);
 
     /**
      * Retrieves a string value from Redis.
@@ -72,4 +75,5 @@ public interface RedisDistributedService {
      * @return true if the key exists, false otherwise
      */
     boolean exists(String key);
+
 }
