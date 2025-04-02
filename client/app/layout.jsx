@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Nunito } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 
 const nutino = Nunito({ subsets: ["latin"], weights: [400, 700] });
 
@@ -12,7 +13,8 @@ function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${nutino.className} antialiased bg-white`}>
-        <main className="m-auto">{children}</main>
+        <main className="m-auto ">{children}</main>
+        <Toaster />
       </body>
     </html>
   );

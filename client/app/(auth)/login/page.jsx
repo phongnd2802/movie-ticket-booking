@@ -1,18 +1,15 @@
 import Image from "next/image";
 import logo from "@/public/logo.png";
 import clsx from "clsx";
-import { Input } from "@/components/ui/input";
-import { User } from "lucide-react";
-import { Lock } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
+import LoginForm from "./login-form";
 
 function LoginPage() {
   return (
-    <div className="h-screen p-10 flex items-center">
+    <div className="h-screen p-10 flex items-center w-full max-vs:justify-center">
       <Image
-        className={clsx("fixed right-0 top-0")}
+        className={clsx("fixed right-0 top-0 max-vs:hidden")}
         src={"/image/star-shape.png"}
         alt="start-shape"
         width={200}
@@ -30,19 +27,13 @@ function LoginPage() {
           <span className={clsx("ml-1 font-black text-xl")}>MovieTicket!</span>
         </div>
 
-        <Input className={clsx("mb-[20px]")} placeHolder={"Email"}>
-          <User className={clsx("w-full h-full text-base")} />
-        </Input>
+        <LoginForm />
 
-        <Input
-          className={clsx("mb-[30px]")}
-          placeHolder={"Password"}
-          type={"password"}
+        <div
+          className={clsx(
+            "flex flex-col items-center justify-between mb-[20px] mmd:flex-row max-vs:hidden"
+          )}
         >
-          <Lock className={clsx("w-full h-full text-base")} />
-        </Input>
-
-        <div className={clsx("flex justify-between mb-[20px]")}>
           <div className="text-sm">
             <span className="mr-1">If don&apos;t have an account?</span>
             <Link className="text-[rgba(70,174,252,0.9)]" href={"/register"}>
@@ -54,13 +45,11 @@ function LoginPage() {
           </Link>
         </div>
 
-        <Button className={clsx("w-full mb-[20px]")}>Login</Button>
-
         <h4 className={clsx("text-xl font-bold mb-[20px]")}>Login With</h4>
 
         <div
           className={clsx(
-            "flex sm:flex-col sm:gap-3 xl:justify-around xl:items-center xl:gap-20 xl:flex-row"
+            "flex sm:flex-col sm:gap-3 xl:justify-around xl:items-center xl:gap-20 xl:flex-row max-sm:flex-col"
           )}
         >
           <Link
