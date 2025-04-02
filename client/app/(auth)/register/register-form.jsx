@@ -1,7 +1,5 @@
 "use client";
-
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -20,48 +18,57 @@ import { Phone } from "lucide-react";
 import { Lock } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-
-const formSchema = z.object({
-  fullName: z.string().min(1, "Họ và tên không được để trống"),
-  email: z.string().email("Email không hợp lệ"),
-  mobileNumber: z
-    .string()
-    .regex(/^[0-9]{10,15}$/, "Số điện thoại không hợp lệ"),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
-  confirmPassword: z
-    .string()
-    .min(6, "Xác nhận mật khẩu phải có ít nhất 6 ký tự"),
-  gender: z.enum(["male", "female"], {
-    errorMap: () => ({ message: "Giới tính là bắt buộc" }),
-  }),
-  termsOfService: z.boolean().refine((value) => value === true, {
-    message: "Bạn phải đồng ý với các điều khoản dịch vụ",
-  }),
-});
+import { useRouter } from "next/navigation";
+import { signUp } from "@/endpoint/auth";
+import { handleSignUp } from "@/lib/auth/signUp";
+import { setCookie } from "@/lib/cookie";
+import { reasonPhrases, statusCode } from "@/core";
+import { formSchemaSignUp } from "@/config/auth";
+import { toast } from "sonner";
+import { successLogin } from "@/ui/toast";
 
 function RegisterForm() {
+  const router = useRouter();
   const form = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchemaSignUp),
     defaultValues: {
-      fullName: "",
+      name: "",
       email: "",
-      mobileNumber: "",
+      phone: "",
       password: "",
       confirmPassword: "",
       gender: "",
       termsOfService: false,
+      birthDate: "",
     },
   });
 
-  const onSubmit = (values) => {
-    console.log(values);
+  const onSubmit = async (values) => {
+    const data = JSON.stringify(values);
+    const response = await handleSignUp({ endpoint: signUp, data });
+    console.log(response);
+    if (response.statuscode === 200) {
+      const token = response.metadata.token;
+      const ttl = response.metadata.ttl;
+      await setCookie("otp_token", token, ttl, `/verify-otp`);
+      router.push(`/verify-otp?token=${token}`);
+    } else if (response.statuscode === statusCode.ERR_USER_NOT_VERIFY) {
+      toast.info(response.message, successLogin);
+      const token = response.metadata.token;
+      const ttl = response.metadata.ttl;
+      await setCookie("otp_token", token, ttl, `/verify-otp`);
+      router.push(`/verify-otp?token=${token}`);
+    } else {
+      toast.error(response.message, successLogin);
+    }
   };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-3">
         <FormField
           control={form.control}
-          name="fullName"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -91,7 +98,7 @@ function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="mobileNumber"
+          name="phone"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -145,8 +152,8 @@ function RegisterForm() {
             <FormItem>
               <FormControl>
                 <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  onValueChange={(value) => field.onChange(value === "male")}
+                  defaultValue={field.value ? "male" : "female"}
                   className={clsx("flex gap-10")}
                 >
                   <FormItem className="flex items-center space-x-2 space-y-0">
@@ -163,7 +170,19 @@ function RegisterForm() {
                   </FormItem>
                 </RadioGroup>
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
+        <FormField
+          control={form.control}
+          name="birthDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -176,8 +195,8 @@ function RegisterForm() {
             <FormItem className="flex flex-row items-start space-x-2 space-y-0">
               <FormControl>
                 <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
                 />
               </FormControl>
               <FormLabel>
@@ -186,6 +205,7 @@ function RegisterForm() {
             </FormItem>
           )}
         />
+
         <Button className={clsx("w-full mb-[10px]")}>Đăng ký</Button>
       </form>
     </Form>

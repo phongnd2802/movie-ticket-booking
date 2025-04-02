@@ -15,13 +15,13 @@ export default function Slide() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsSliding(true); // Kích hoạt animation
+      setIsSliding(true);
 
       setTimeout(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % IMAGE.length);
         setIsSliding(false);
-      }, 500); // Đợi animation hoàn tất rồi đổi ảnh
-    }, 2500); // Tổng thời gian (2s đứng yên + 0.5s chuyển động)
+      }, 500);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, []);

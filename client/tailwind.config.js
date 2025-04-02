@@ -8,6 +8,15 @@ module.exports = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        "caret-blink": {
+          "0%,70%,100%": { opacity: "1" },
+          "20%,50%": { opacity: "0" },
+        },
+      },
+      animation: {
+        "caret-blink": "caret-blink 1.25s ease-out infinite",
+      },
       colors: {
         textOrange: "rgb(249, 115, 22)",
         backgroundHover: "rgba(0, 0, 0, 0.5)",
@@ -64,6 +73,7 @@ module.exports = {
         vs: "768px",
         ssm: "900px",
         md: "1018px",
+        mmd: "975px",
         mds: "1200px",
         lg: "1310px",
       },
