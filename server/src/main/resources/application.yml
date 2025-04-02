@@ -81,6 +81,21 @@ spring:
     virtual:
       enabled: true
 
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - '*'
+
 resilience4j:
   circuitbreaker:
     configs:

@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -34,13 +35,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     private final Set<String> PUBLIC_ENDPOINTS = Set.of(
             "/api/v1/auth/register",
             "/api/v1/auth/login",
             "/api/v1/auth/verify-otp",
             "/api/v1/auth/otp-session",
             "/api/v1/auth/resend-otp",
-            "/api/v1/hi"
+            "/api/v1/hi",
+            "/api/v1/actuator/health",
+            "/api/v1/actuator/**"
     );
 
     @Override
@@ -110,6 +115,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return PUBLIC_ENDPOINTS.contains(uri);
+
+        for (String endpoint : PUBLIC_ENDPOINTS) {
+            if (pathMatcher.match(endpoint, uri)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

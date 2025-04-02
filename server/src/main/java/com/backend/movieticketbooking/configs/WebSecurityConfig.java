@@ -53,6 +53,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/auth/otp-session").permitAll()
                         .requestMatchers("/auth/resend-otp").permitAll()
                         .requestMatchers("/hi").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

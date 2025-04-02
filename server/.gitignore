@@ -39,3 +39,4 @@ environment/kafka
 environment/minio
 environment/postgres
 environment/prometheus
+environment/grafana
