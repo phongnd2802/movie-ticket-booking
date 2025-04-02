@@ -2,6 +2,7 @@ package com.backend.movieticketbooking.controllers;
 
 
 import com.backend.movieticketbooking.common.ApiResponse;
+import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.dtos.auth.request.LoginRequest;
 import com.backend.movieticketbooking.dtos.auth.request.RegisterRequest;
 import com.backend.movieticketbooking.dtos.auth.request.ResendOTPRequest;
@@ -29,12 +30,12 @@ public class AuthController {
     public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
         String userAgent = httpServletRequest.getHeader("User-Agent");
         if (StringUtil.isNullOrEmpty(userAgent)) {
-            throw new BadRequestException("User-Agent is empty");
+            throw new BadRequestException(ErrorCode.USER_AGENT_NOT_SUPPORTED);
         }
         request.setUserAgent(userAgent);
         String ipAddress = httpServletRequest.getRemoteAddr();
         if (StringUtil.isNullOrEmpty(ipAddress)) {
-            throw new BadRequestException("IP address is empty");
+            throw new BadRequestException(ErrorCode.IP_ADDRESS_EMPTY);
         }
         request.setLoginIp(ipAddress);
         LoginResponse result = authService.login(request);

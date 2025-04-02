@@ -12,7 +12,7 @@ export const metadata = {
 export default function AuthLayout({ children }) {
   return (
     <div className={clsx("flex")}>
-      <div className="relative w-2/5 h-screen">
+      <div className="relative w-2/5 h-screen max-vs:hidden">
         <div className="absolute inset-0 bg-[url('/image/background-image.webp')] bg-cover bg-center"></div>
 
         <div className="absolute inset-0 bg-gradient-to-r from-[rgba(70,174,252,0.9)] to-[rgba(70,174,252,0.9)]"></div>
@@ -44,7 +44,9 @@ export default function AuthLayout({ children }) {
           </p>
         </div>
       </div>
-      <div className={clsx("bg-white w-3/5 h-screen")}>{children}</div>
+      <div className={clsx("bg-white w-3/5 h-screen max-vs:w-full")}>
+        {children}
+      </div>
     </div>
   );
 }

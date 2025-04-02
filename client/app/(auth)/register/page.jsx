@@ -5,9 +5,9 @@ import RegisterForm from "./register-form";
 
 function RegisterPage() {
   return (
-    <div className="h-screen p-10 flex items-center">
+    <div className="h-screen p-10 flex items-center max-vs:w-full max-vs:justify-center">
       <Image
-        className={clsx("fixed right-0 top-0")}
+        className={clsx("fixed right-0 top-0 max-vs:hidden")}
         src={"/image/star-shape.png"}
         alt="start-shape"
         width={200}

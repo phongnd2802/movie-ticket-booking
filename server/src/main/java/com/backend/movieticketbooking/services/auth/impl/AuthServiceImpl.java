@@ -1,5 +1,6 @@
 package com.backend.movieticketbooking.services.auth.impl;
 
+import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.dtos.auth.UserDTO;
 import com.backend.movieticketbooking.dtos.auth.request.LoginRequest;
 import com.backend.movieticketbooking.dtos.auth.request.RegisterRequest;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
 
 
 @Service
@@ -93,15 +95,15 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         Optional<UserEntity> userEntity = userRepository.findByUserEmail(request.getEmail());
         if (userEntity.isEmpty()) {
-            throw new BadRequestException("Email or password is incorrect");
+            throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }
         UserDetails userDetails = userDetailService.fromUserEntity(userEntity.get());
         if (userDetails == null) {
-            throw new BadRequestException("Email or password is incorrect");
+            throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
         if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
-            throw new BadRequestException("Email or password is incorrect");
+            throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
 
@@ -114,7 +116,7 @@ public class AuthServiceImpl implements AuthService {
 
         ProfileEntity profileEntity = profileRepository.findByUser(userEntity.get());
         if (profileEntity == null){
-           throw new BadRequestException("Profile not found");
+           throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
         UserPrinciple userPrinciple = (UserPrinciple) userDetailService.withUserProfile(userEntity.get(), profileEntity);
@@ -157,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
             // Check if the user is currently in the authentication session
             boolean exists = redisDistributedService.exists(getUserKeySession(hashedEmail));
             if (!exists) {
-                throw new BadRequestException("Email already exists");
+                throw new BadRequestException(ErrorCode.EMAIL_ALREADY_EXISTS);
             }
             return RegisterResponse.builder()
                     .email(userFound.get().getUserEmail())
@@ -219,17 +221,17 @@ public class AuthServiceImpl implements AuthService {
             String token = CryptoUtil.decodeBase64(request.getToken());
             Long ttl = redisDistributedService.getTTL(getUserKeySession(token));
             if (ttl == null || ttl <= 0) {
-                throw new BadRequestException("Invalid token");
+                throw new BadRequestException(ErrorCode.OTP_SESSION_EXPIRED);
             }
 
             String otpRedis = redisDistributedService.getString(getUserKeyOtp(token));
             if (!request.getOtp().equals(otpRedis)) {
-                throw new BadRequestException("Invalid otp");
+                throw new BadRequestException(ErrorCode.OTP_DOES_NOT_MATCH);
             }
 
             Optional<UserEntity> userEntity = userRepository.findByUserEmail(request.getEmail());
             if (userEntity.isEmpty()) {
-                throw new BadRequestException("Invalid email");
+                throw new BadRequestException(ErrorCode.EMAIL_NOT_FOUND);
             }
 
             userEntity.get().setUserVerified(true);
@@ -239,7 +241,7 @@ public class AuthServiceImpl implements AuthService {
             redisDistributedService.deleteKey(getUserKeySession(token));
             return true;
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid token");
+            throw new BadRequestException(ErrorCode.OTP_SESSION_EXPIRED);
         }
     }
 
@@ -247,7 +249,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String token) {
         Claims claims = jwtService.getTokenClaims(token);
         if (claims == null) {
-            throw new InternalServerException("Error get claims token");
+            throw new InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
         sessionRepository.deleteById(claims.getSubject());
@@ -261,25 +263,25 @@ public class AuthServiceImpl implements AuthService {
     public RefreshTokenResponse refreshToken(String refreshToken) {
         Claims claims = jwtService.getTokenClaims(refreshToken);
         if (claims == null) {
-            throw new InternalServerException("Error get claims token");
+            throw new InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
         Optional<SessionEntity> foundRefreshTokenUsed = sessionRepository.findByRefreshTokenUsed(refreshToken);
         if (foundRefreshTokenUsed.isPresent()) {
             if (foundRefreshTokenUsed.get().getRefreshTokenUsed().equals(refreshToken)) {
-                throw new BadRequestException("Suspicious activity detected: Refresh token has been used.");
+                throw new BadRequestException(ErrorCode.REFRESH_TOKEN_USED);
             }
         }
 
         Optional<SessionEntity> foundSession = sessionRepository.findById(claims.getSubject());
         if (foundSession.isEmpty()) {
-            throw new BadRequestException("Session not found");
+            throw new BadRequestException(ErrorCode.SESSION_NOT_FOUND);
         }
 
         SessionEntity session = foundSession.get();
 
         if (!session.getRefreshToken().equals(refreshToken)) {
-            throw new BadRequestException("Refresh token does not match");
+            throw new BadRequestException(ErrorCode.REFRESH_TOKEN_DOES_NOT_MATCH);
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -302,11 +304,11 @@ public class AuthServiceImpl implements AuthService {
         try {
             Long ttl = redisDistributedService.getTTL(getUserKeyOtp(CryptoUtil.decodeBase64(token)));
             if (ttl == null || ttl <= 0) {
-                throw new BadRequestException("Invalid token");
+                throw new BadRequestException(ErrorCode.OTP_SESSION_EXPIRED);
             }
             return ttl;
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid token");
+            throw new BadRequestException(ErrorCode.OTP_SESSION_EXPIRED);
         }
     }
 
@@ -316,7 +318,7 @@ public class AuthServiceImpl implements AuthService {
             String token = CryptoUtil.decodeBase64(request.getToken());
             boolean exist = redisDistributedService.exists(getUserKeySession(token));
             if (exist) {
-                throw new BadRequestException("OTP is still valid. Please use the existing OTP.");
+                throw new BadRequestException(ErrorCode.OTP_IS_EXISTING);
             }
 
             String newOtp = generateOtp();
@@ -331,7 +333,7 @@ public class AuthServiceImpl implements AuthService {
             kafkaProducer.sendSync("otp-auth-topic", messageJson);
 
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid token");
+            throw new BadRequestException(ErrorCode.OTP_SESSION_EXPIRED);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
