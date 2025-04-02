@@ -1,5 +1,6 @@
 package com.backend.movieticketbooking.security.jwt;
 
+import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.exceptions.UnauthorizedException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,6 @@ public class JwtEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         log.error("Unauthorized error Message {}", authException.getMessage());
-        throw new UnauthorizedException("Unauthorized error Message " + authException.getMessage());
+        throw new UnauthorizedException(ErrorCode.UNAUTHORIZED);
     }
 }

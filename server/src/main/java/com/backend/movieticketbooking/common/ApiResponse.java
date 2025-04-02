@@ -15,6 +15,6 @@ public class ApiResponse<T> {
 
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<T>(20000, "success", data);
+        return new ApiResponse<T>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage(), data);
     }
 }

@@ -1,16 +1,23 @@
 package com.backend.movieticketbooking.exceptions;
 
 
+import com.backend.movieticketbooking.common.ErrorCode;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@Getter
+@ResponseStatus(HttpStatus.OK)
 public class BadRequestException extends RuntimeException {
+    private int code;
+
     public BadRequestException(String message) {
         super(message);
     }
 
-    public BadRequestException(int code, String message) {
-        super(message);
+    public BadRequestException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.code = errorCode.getCode();
     }
+
 }
