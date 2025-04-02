@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
+import java.util.Set;
 
 @Slf4j
 public class JwtTokenFilter extends OncePerRequestFilter {
@@ -34,21 +34,27 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final Set<String> PUBLIC_ENDPOINTS = Set.of(
+            "/api/v1/auth/register",
+            "/api/v1/auth/login",
+            "/api/v1/auth/verify-otp",
+            "/api/v1/auth/otp-session",
+            "/api/v1/auth/resend-otp",
+            "/api/v1/hi"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            String token = getJwt(request);
-            if (token == null) {
+            if (isPublicEndpoint(request)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-//            String email = jwtProvider.getEmailFromToken(token);
-//            UserDetails userDetails = userDetailService.loadUserByUsername(email);
-//
-//            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//
-//            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            String token = getJwt(request);
+            if (token == null) {
+                unauthorizedResponse(response, 401, "Invalid or expired token");
+                return;
+            }
             Claims claims = jwtProvider.validateToken(token);
             if (claims == null) {
                 unauthorizedResponse(response, 401, "Invalid or expired token");
@@ -100,5 +106,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         String jsonResponse = objectMapper.writeValueAsString(errorResponse);
         response.getWriter().write(jsonResponse);
+    }
+
+    private boolean isPublicEndpoint(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return PUBLIC_ENDPOINTS.contains(uri);
     }
 }

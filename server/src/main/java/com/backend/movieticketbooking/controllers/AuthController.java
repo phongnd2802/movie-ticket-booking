@@ -26,7 +26,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    ApiResponse<LoginResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
+    public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
         String userAgent = httpServletRequest.getHeader("User-Agent");
         if (StringUtil.isNullOrEmpty(userAgent)) {
             throw new BadRequestException("User-Agent is empty");
@@ -42,13 +42,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    ApiResponse<RegisterResponse> register(@RequestBody RegisterRequest request) {
+    public ApiResponse<RegisterResponse> register(@RequestBody RegisterRequest request) {
         RegisterResponse result = authService.register(request);
         return ApiResponse.success(result);
     }
 
     @PostMapping("/logout")
-    ApiResponse<?> logout(HttpServletRequest request) {
+    public ApiResponse<?> logout(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         String token = authorizationHeader.substring(7);
         authService.logout(token);
@@ -57,19 +57,19 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    ApiResponse<Boolean> verifyOTP(@RequestBody VerifyOTPRequest request) {
+    public ApiResponse<Boolean> verifyOTP(@RequestBody VerifyOTPRequest request) {
         Boolean result = authService.verifyOTP(request);
         return ApiResponse.success(result);
     }
 
     @GetMapping("/otp-session")
-    ApiResponse<Long> getOTPSession(@RequestParam String token) {
+    public ApiResponse<Long> getOTPSession(@RequestParam String token) {
         Long ttl = authService.getTimeToLiveOTP(token);
         return ApiResponse.success(ttl);
     }
 
     @PatchMapping("/refresh-token")
-    ApiResponse<RefreshTokenResponse> refreshToken(HttpServletRequest request) {
+    public ApiResponse<RefreshTokenResponse> refreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         String token = authorizationHeader.substring(7);
 
@@ -78,7 +78,7 @@ public class AuthController {
     }
 
     @PatchMapping("/resend-otp")
-    ApiResponse<?> resendOTP(@RequestBody ResendOTPRequest request) {
+    public ApiResponse<?> resendOTP(@RequestBody ResendOTPRequest request) {
         authService.resendOTP(request);
         return ApiResponse.success(null);
     }
