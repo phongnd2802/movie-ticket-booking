@@ -9,6 +9,7 @@ import com.backend.movieticketbooking.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.List;
 import java.util.Set;
@@ -40,13 +41,13 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     List<SessionEntity> userSessions;
 
-
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     ProfileEntity profile;
 
     @ElementCollection(targetClass = RoleEnum.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
+    @BatchSize(size = 10)
     private Set<RoleEnum> roles;
 
     public Set<PermissionEnum> getPermissions() {
@@ -59,6 +60,7 @@ public class UserEntity extends BaseEntity {
     @JoinColumn(name = "user_id")
     List<BookingEntity> bookings;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     List<NotificationEntity> notifications;
+
 }

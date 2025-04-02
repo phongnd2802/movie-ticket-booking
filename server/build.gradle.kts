@@ -20,8 +20,32 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.4.1")
+
+
+    implementation("org.springframework.boot:spring-boot-starter-data-redis:3.4.1")
+    implementation("org.springframework.boot:spring-boot-starter-mail:3.4.1")
     implementation("org.postgresql:postgresql:42.7.3")
-    compileOnly("org.projectlombok:lombok:1.18.24")
+    implementation("org.springframework.kafka:spring-kafka")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    compileOnly("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+
+    implementation("io.minio:minio:8.5.17")
+    implementation("com.google.guava:guava:33.2.1-jre")
+
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+    implementation("org.mapstruct:mapstruct:1.5.3.Final")
+
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
+
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

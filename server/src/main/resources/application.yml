@@ -1,16 +1,117 @@
+server:
+  port: 8080
+  tomcat:
+    threads:
+      max: 200
+  servlet:
+    context-path: /api/v1
+
 spring:
   application:
-    name: server
+    name: movie-ticket-booking
   datasource:
+    hikari:
+      maximum-pool-size: 20 # Số lượng tối đa kết nối
+      minimum-idle: 5 # Số lượng kết nối tối thiểu trong pool
     url: jdbc:postgresql://localhost:5555/movie-ticket-booking
     username: postgres
     password: secret
     driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
 
   jpa:
+    database: postgresql
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
     show-sql: true
+  jackson:
+    serialization:
+      indent-output: true
+
+  # Redis Connection settings
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6666
+      password: secret
+      lettuce:
+        pool: #Connection pool settings
+          max-active: 8 #Maximum number of active connections in the pool (uses -1 for no limit)
+          max-idle: 8 #Maxmimum number of idle connections in the pool
+          min-idle: 0 # Minimum number of idle connections in the pool
+          max-wait: -1ms #Maximum wait time to get a connection from the pool (-1 for no limit)
+      connect-timeout: 30000 #Connection timeout (in milliseconds)
+
+  mail:
+    port: 587
+    host: smtp.gmail.com
+    password: aymqvnmmhkjbuytz
+    username: duyphong02802@gmail.com
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  kafka:
+    bootstrap-servers: localhost:9193
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 0
+      batch-size: 16384
+      buffer-memory: 33554422
+    consumer:
+      group-id: otp-group-id
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      auto-commit-interval: 100
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      missing-topics-fatal: false
+      ack-mode: manual_immediate
+  threads:
+    virtual:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3 # Số lượng request cho phép khi circuitbreaker ở trạng trái half open
+       # slidingWindowType: TIME_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+
+  ratelimiter:
+    instances:
+      backendA:
+        limitForPeriod: 2
+        limitRefreshPeriod: 10s
+        timeoutDuration: 0
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 100
+
+
+minio:
+  endpoint: http://127.0.0.1:9000
+  access-key: GokmCJ8vcRjxE1svgv8X
+  secret-key: ClN9oGx9y9VZOlUyNM5K2EgJCBBFDCPpR48ugB2i
+
+jwt:
+  secret: A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2
+  access:
+    expiration: 900000
+  refresh:
+    expiration: 604800000

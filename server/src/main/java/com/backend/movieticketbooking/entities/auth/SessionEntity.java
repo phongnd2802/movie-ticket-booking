@@ -14,9 +14,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class SessionEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "session_id")
     String sessionId;
 
@@ -24,15 +24,11 @@ public class SessionEntity extends BaseEntity {
 
     String refreshTokenUsed;
 
-    String publicKey;
-
     String userAgent;
 
     String userLoginIp;
 
     LocalDateTime userLoginTime;
-
-    LocalDateTime userLogoutTime;
 
     LocalDateTime expiresAt;
 
