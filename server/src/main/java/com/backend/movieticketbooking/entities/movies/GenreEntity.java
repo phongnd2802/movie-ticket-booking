@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class GenreEntity extends BaseEntity {
 
     @Id
@@ -21,6 +22,7 @@ public class GenreEntity extends BaseEntity {
     @Column(name = "genre_id")
     int genreId;
 
+    @Column(unique = true, nullable = false)
     String genreName;
 
     @ManyToMany

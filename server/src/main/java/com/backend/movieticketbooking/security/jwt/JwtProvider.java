@@ -6,12 +6,11 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Component
 @Slf4j
@@ -28,13 +27,8 @@ public class JwtProvider {
     public String createAccessToken(Authentication authentication, String subjectUUID) {
         UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
 
-        List<String> authorities = userPrinciple.getAuthorities()
-                .stream().map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
         return Jwts.builder()
                 .setSubject(subjectUUID)
-                .claim("authorities", authorities)
                 .claim("email", userPrinciple.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))

@@ -21,6 +21,10 @@ public enum ErrorCode {
     SESSION_NOT_FOUND(40019, "session not found"),
     REFRESH_TOKEN_DOES_NOT_MATCH(40020, "Refresh token does not match"),
     OTP_IS_EXISTING(40021, "OTP is still valid. Please use the existing OTP."),
+
+    FORBIDDEN(40003, "Forbidden"),
+
+    GENRE_ALREADY_EXISTS(40022, "Genre already exists"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;

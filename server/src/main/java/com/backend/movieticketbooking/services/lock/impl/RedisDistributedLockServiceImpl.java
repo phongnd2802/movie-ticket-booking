@@ -2,7 +2,9 @@ package com.backend.movieticketbooking.services.lock.impl;
 
 import com.backend.movieticketbooking.services.lock.DistributedLockService;
 import com.backend.movieticketbooking.services.lock.DistributedLocker;
-import jakarta.annotation.Resource;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -12,10 +14,11 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RedisDistributedLockServiceImpl implements DistributedLockService {
 
-    @Resource
-    private RedissonClient redissonClient;
+    RedissonClient redissonClient;
 
     @Override
     public DistributedLocker getDistributedLock(String lockKey) {

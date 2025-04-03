@@ -9,35 +9,40 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Set;
 
+@Component
 @Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtProvider jwtProvider;
+    JwtProvider jwtProvider;
 
-    @Autowired
-    private UserDetailService userDetailService;
+    UserDetailService userDetailService;
 
-    @Autowired
-    private DistributedCacheService redisCacheService;
+    DistributedCacheService redisCacheService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = new ObjectMapper();
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    private final Set<String> PUBLIC_ENDPOINTS = Set.of(
+    Set<String> PUBLIC_ENDPOINTS = Set.of(
             "/api/v1/auth/register",
             "/api/v1/auth/login",
             "/api/v1/auth/verify-otp",
