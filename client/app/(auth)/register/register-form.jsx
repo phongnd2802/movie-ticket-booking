@@ -32,21 +32,18 @@ function RegisterForm() {
   const form = useForm({
     resolver: zodResolver(formSchemaSignUp),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      password: "",
-      confirmPassword: "",
-      gender: "",
-      termsOfService: false,
-      birthDate: "",
+      userName: "",
+      userEmail: "",
+      userMobile: "",
+      userPassword: "",
+      userGender: true,
+      userBirthday: "",
     },
   });
 
   const onSubmit = async (values) => {
     const data = JSON.stringify(values);
     const response = await handleSignUp({ endpoint: signUp, data });
-    console.log(response);
     if (response.statuscode === 200) {
       const token = response.metadata.token;
       const ttl = response.metadata.ttl;
@@ -68,7 +65,7 @@ function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-3">
         <FormField
           control={form.control}
-          name="name"
+          name="userName"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -83,7 +80,7 @@ function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="email"
+          name="userEmail"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -98,7 +95,7 @@ function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="phone"
+          name="userMobile"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -113,7 +110,7 @@ function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="password"
+          name="userPassword"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -128,26 +125,7 @@ function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input
-                  type={"password"}
-                  placeHolder={"Xác nhận mật khẩu"}
-                  {...field}
-                >
-                  <Lock className={clsx("w-full h-full text-base")} />
-                </Input>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="gender"
+          name="userGender"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -177,31 +155,13 @@ function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="birthDate"
+          name="userBirthday"
           render={({ field }) => (
             <FormItem>
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
               <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="termsOfService"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-2 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel>
-                Tôi đồng ý với các điều khoản dịch vụ và chính sách bảo mật
-              </FormLabel>
             </FormItem>
           )}
         />
