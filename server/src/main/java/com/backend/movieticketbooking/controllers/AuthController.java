@@ -44,6 +44,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ApiResponse<RegisterResponse> register(@RequestBody RegisterRequest request) {
+        System.out.println("vô đây");
         RegisterResponse result = authService.register(request);
         return ApiResponse.success(result);
     }

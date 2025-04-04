@@ -148,11 +148,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public RegisterResponse register(RegisterRequest request) throws BadRequestException {
+        System.out.println(request.toString());
+
         // 1. Hash Email
         log.info("Email address: {}",request.getUserEmail());
         String hashedEmail = CryptoUtil.sha256Hash(request.getUserEmail());
         log.info("Hashed email address: {}",hashedEmail);
-
         // 2. Check if email already exists
         Optional<UserEntity> userFound = userRepository.findByUserEmail(request.getUserEmail());
         if (userFound.isPresent()) {

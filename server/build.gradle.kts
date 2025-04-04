@@ -21,12 +21,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.4.1")
 
-
+    implementation("org.springframework.boot:spring-boot-starter-security:3.2.4")
     implementation("org.springframework.boot:spring-boot-starter-data-redis:3.4.1")
     implementation("org.springframework.boot:spring-boot-starter-mail:3.4.1")
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.springframework.security:spring-security-test")
     compileOnly("org.projectlombok:lombok:1.18.30")
