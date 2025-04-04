@@ -4,7 +4,6 @@ import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.dtos.cinema.CinemaDTO;
 import com.backend.movieticketbooking.dtos.cinema.CinemaHallDTO;
 import com.backend.movieticketbooking.dtos.cinema.request.CreateCinemaHallRequest;
-import com.backend.movieticketbooking.dtos.cinema.response.CreateCinemaHallResponse;
 import com.backend.movieticketbooking.entities.cinema.CinemaEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallSeatEntity;
@@ -101,6 +100,7 @@ public class CinemaServiceImpl implements CinemaService {
         int totalStandardRows = (int) standardSeatNumber / 16;
 
         CinemaHallEntity cinemaHall = CinemaHallEntity.builder()
+                .cinema(foundCinema.get())
                 .cinemaHallName(request.getCinemaHallName())
                 .cinemaSeatsNumberAvailable(totalSeats)
                 .build();
@@ -110,7 +110,7 @@ public class CinemaServiceImpl implements CinemaService {
         for (int row = 0; row < totalStandardRows; row++) {
             char rowLetter = (char) ('A' + row);
             for (int col = 1; col <= 16; col++) {
-                seats.add(generateCinemaHallSeat(String.valueOf(rowLetter), String.valueOf(col), SeatTypeEnum.STANDARD));
+                seats.add(generateCinemaHallSeat(String.valueOf(rowLetter), String.valueOf(col), SeatTypeEnum.STANDARD, cinemaHall));
             }
         }
 
@@ -122,7 +122,7 @@ public class CinemaServiceImpl implements CinemaService {
             int col2 = col1 + 1;
             String col = col1 + "" + col2;
 
-            seats.add(generateCinemaHallSeat(String.valueOf(rowLetter), col, SeatTypeEnum.COUPLE));
+            seats.add(generateCinemaHallSeat(String.valueOf(rowLetter), col, SeatTypeEnum.COUPLE, cinemaHall));
         }
 
 
@@ -140,11 +140,12 @@ public class CinemaServiceImpl implements CinemaService {
                 .build();
     }
 
-    CinemaHallSeatEntity generateCinemaHallSeat(String row, String col, SeatTypeEnum seatType) {
+    CinemaHallSeatEntity generateCinemaHallSeat(String row, String col, SeatTypeEnum seatType, CinemaHallEntity cinemaHall) {
         return CinemaHallSeatEntity.builder()
                 .seatRow(row)
                 .seatCol(col)
                 .seatType(seatType)
+                .cinemaHall(cinemaHall)
                 .build();
     }
 

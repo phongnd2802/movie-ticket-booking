@@ -26,7 +26,7 @@ public class CinemaEntity extends BaseEntity {
     String cinemaStreet;
 
     @OneToOne
-    @JoinColumn(name = "adcress_id")
+    @JoinColumn(name = "address_id")
     AddressEntity address;
 
     @OneToMany

@@ -34,6 +34,12 @@ public enum ErrorCode {
     INVALID_COUPLE_TYPE_SEAT_NUMBER(40026, "Invalid couple type seat number"),
     INVALID_STANDARD_TYPE_SEAT_NUMBER(40027, "Invalid standard type seat number"),
     INVALID_TOTAL_SEAT_NUMBER(40027, "Invalid total seat number"),
+
+    INVALID_FORMAT_TIME(40028, "Invalid format time"),
+
+    MOVIE_NOT_FOUND(40029, "Movie not found"),
+    CINEMA_HALL_NOT_FOUND(40030, "CINEMA hall not found"),
+    SHOW_ALREADY_EXISTS(40031, "A show already exists during this time period"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;

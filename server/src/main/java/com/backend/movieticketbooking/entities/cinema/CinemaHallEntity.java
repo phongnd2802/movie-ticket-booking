@@ -18,15 +18,19 @@ import java.util.List;
 public class CinemaHallEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "cinema_hall_id")
     int cinemaHallId;
 
     String cinemaHallName;
 
     int cinemaSeatsNumberAvailable;
 
+    @ManyToOne
+    @JoinColumn(name = "cinema_id", nullable = false)
+    CinemaEntity cinema;
 
-    @OneToMany
-    @JoinColumn(name = "cenima_hall_id")
+    @OneToMany(mappedBy = "cinemaHall", fetch = FetchType.LAZY)
+    List<ShowEntity> shows;
+
+    @OneToMany(mappedBy = "cinemaHall", fetch = FetchType.LAZY)
     List<CinemaHallSeatEntity> cinemaHallSeats;
 }

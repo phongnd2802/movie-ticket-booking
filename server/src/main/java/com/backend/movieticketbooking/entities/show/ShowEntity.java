@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class ShowEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,5 +40,4 @@ public class ShowEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "show", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<ShowSeatEntity> showSeats;
-
 }

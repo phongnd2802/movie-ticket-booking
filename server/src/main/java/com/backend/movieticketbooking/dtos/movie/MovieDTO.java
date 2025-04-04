@@ -14,6 +14,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MovieDTO {
+    private int movieId;
+
     private String movieName;
 
     private String movieDescription;
