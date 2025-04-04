@@ -8,18 +8,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "minio")
 public class MinioConfig {
 
-    @Value("endpoint")
+    @Value("${minio.endpoint}")
     private String endpoint;
 
-    @Value("access-key")
+    @Value("${minio.access-key}")
     private String accessKey;
 
-    @Value("secret-key")
+    @Value("${minio.secret-key}")
     private String secretKey;
-
 
     @Bean
     public MinioClient minioClient() {

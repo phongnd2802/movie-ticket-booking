@@ -6,6 +6,7 @@ server:
   servlet:
     context-path: /api/v1
 
+
 spring:
   application:
     name: movie-ticket-booking
@@ -18,15 +19,20 @@ spring:
     password: secret
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
+  threads:
+    virtual:
+      enabled: true
+
 
   jpa:
     database: postgresql
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
     show-sql: true
+
   jackson:
     serialization:
       indent-output: true
@@ -77,9 +83,20 @@ spring:
     listener:
       missing-topics-fatal: false
       ack-mode: manual_immediate
-  threads:
-    virtual:
+management:
+  health:
+    circuitbreakers:
       enabled: true
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - '*'
 
 resilience4j:
   circuitbreaker:

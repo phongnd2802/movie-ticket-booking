@@ -123,5 +123,21 @@ services:
       - "9090:9090"
     networks:
       - movie-ticket-network
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana_container
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SING_UP: false
+      GF_SERVER_DOMAIN: localhost
+      GF_LOG_MODE: console file
+      GF_LOG_FILTERS: alerting.notifier.slack:debug alermanager:debug ngalert:debug
+    volumes:
+      - ./grafana:/var/lib/grafana
+    ports:
+      - "3005:3000"
+    networks:
+      - movie-ticket-network
 networks:
   movie-ticket-network:

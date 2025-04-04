@@ -14,7 +14,7 @@ import com.backend.movieticketbooking.exceptions.InternalServerException;
 import com.backend.movieticketbooking.repositories.SessionRepository;
 import com.backend.movieticketbooking.security.jwt.JwtProvider;
 import com.backend.movieticketbooking.security.userprinciple.UserDetailService;
-import com.backend.movieticketbooking.security.userprinciple.UserPrinciple;
+import com.backend.movieticketbooking.services.cache.local.LocalCacheService;
 import com.backend.movieticketbooking.services.kafka.message.OtpMessage;
 import com.backend.movieticketbooking.entities.auth.ProfileEntity;
 import com.backend.movieticketbooking.entities.auth.UserEntity;
@@ -28,14 +28,17 @@ import com.backend.movieticketbooking.services.auth.AuthService;
 import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
 import com.backend.movieticketbooking.services.kafka.KafkaProducer;
 import com.backend.movieticketbooking.utils.CryptoUtil;
+import com.backend.movieticketbooking.utils.SnowflakeGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,45 +51,40 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
-
 @Service
 @Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
-    private DistributedCacheService redisDistributedService;
+    DistributedCacheService redisDistributedService;
 
-    @Autowired
-    private JwtProvider jwtService;
+    JwtProvider jwtService;
 
-    @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
-    @Autowired
-    private ProfileRepository profileRepository;
+    ProfileRepository profileRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserMapper userMapper;
+    UserMapper userMapper;
 
-    @Autowired
-    private ProfileMapper profileMapper;
+    ProfileMapper profileMapper;
 
-    @Autowired
-    private KafkaProducer kafkaProducer;
+    KafkaProducer kafkaProducer;
 
-    @Autowired
-    private UserDetailService userDetailService;
+    UserDetailService userDetailService;
 
-    @Autowired
-    private SessionRepository sessionRepository;
+    SessionRepository sessionRepository;
 
     @PersistenceContext
-    private EntityManager entityManager;
+    EntityManager entityManager;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    LocalCacheService<String, UserDetails> userLocalCacheService;
+
+    ObjectMapper objectMapper;
+
+    SnowflakeGenerator snowflakeGenerator;
 
     private static final Long OTP_EXPIRED_TIME = 60L;
 
@@ -106,22 +104,20 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
-
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        UUID subjectUUID = UUID.randomUUID();
-        String accessToken = jwtService.createAccessToken(authentication, subjectUUID.toString());
-        String refreshToken = jwtService.createRefreshToken(authentication, subjectUUID.toString());
+        long subjectId = snowflakeGenerator.nextId();
+        String accessToken = jwtService.createAccessToken(authentication, String.valueOf(subjectId));
+        String refreshToken = jwtService.createRefreshToken(authentication, String.valueOf(subjectId));
 
         ProfileEntity profileEntity = profileRepository.findByUser(userEntity.get());
-        if (profileEntity == null){
-           throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
+        if (profileEntity == null) {
+            throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
-        UserPrinciple userPrinciple = (UserPrinciple) userDetailService.withUserProfile(userEntity.get(), profileEntity);
         SessionEntity sessionEntity = SessionEntity.builder()
-                .sessionId(subjectUUID.toString())
+                .sessionId(String.valueOf(subjectId))
                 .refreshToken(refreshToken)
                 .refreshTokenUsed(null)
                 .userAgent(request.getUserAgent())
@@ -132,15 +128,18 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         entityManager.persist(sessionEntity);
 
+        redisDistributedService.setObjectTTL(getUserKeyDetails(userDetails.getUsername()), userDetails, 3600L, TimeUnit.SECONDS);
+        userLocalCacheService.put(userDetails.getUsername(), userDetails);
+
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .profile(UserDTO.builder()
-                        .userEmail(userPrinciple.getUserEmail())
-                        .userName(userPrinciple.getUsername())
-                        .userGender(userPrinciple.isUserGender())
-                        .userBirthday(userPrinciple.getUserBirthday())
-                        .userMobile(userPrinciple.getUserMobile())
+                        .userEmail(profileEntity.getUserEmail())
+                        .userName(profileEntity.getUserName())
+                        .userGender(profileEntity.isUserGender())
+                        .userBirthday(profileEntity.getUserBirthday())
+                        .userMobile(profileEntity.getUserMobile())
                         .build())
                 .build();
     }
@@ -148,12 +147,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public RegisterResponse register(RegisterRequest request) throws BadRequestException {
-        System.out.println(request.toString());
-
         // 1. Hash Email
-        log.info("Email address: {}",request.getUserEmail());
+        log.info("Email address: {}", request.getUserEmail());
         String hashedEmail = CryptoUtil.sha256Hash(request.getUserEmail());
-        log.info("Hashed email address: {}",hashedEmail);
+        log.info("Hashed email address: {}", hashedEmail);
+
         // 2. Check if email already exists
         Optional<UserEntity> userFound = userRepository.findByUserEmail(request.getUserEmail());
         if (userFound.isPresent()) {
@@ -170,7 +168,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 3. Hash Password
         String hashedPassword = passwordEncoder.encode(request.getUserPassword());
-        log.info("Hashed password: {}",hashedPassword);
+        log.info("Hashed password: {}", hashedPassword);
 
         // Generate OTP for user verification
         String newOtp = generateOtp();
@@ -217,7 +215,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Boolean verifyOTP(VerifyOTPRequest request) throws BadRequestException{
+    public Boolean verifyOTP(VerifyOTPRequest request) throws BadRequestException {
         try {
             String token = CryptoUtil.decodeBase64(request.getToken());
             Long ttl = redisDistributedService.getTTL(getUserKeySession(token));
@@ -341,17 +339,22 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    private String getUserKeyDetails(String email) {
+        return "usr:" + email;
+    }
+
     private String getUserKeySession(String hashedEmail) {
-        return "usr:"+hashedEmail+":"+"session";
+        return "usr:" + hashedEmail + ":" + "session";
     }
 
     private String getUserKeyOtp(String hashedEmail) {
-        return "usr:"+hashedEmail+":"+"otp";
+        return "usr:" + hashedEmail + ":" + "otp";
     }
 
     private String getUserKeyBlackList(String subjectUUID) {
-        return "usr:"+subjectUUID+":"+"blacklist";
+        return "usr:" + subjectUUID + ":" + "blacklist";
     }
+
     private String generateOtp() {
         Random random = new Random();
         int otp = 100000 + random.nextInt(900000);

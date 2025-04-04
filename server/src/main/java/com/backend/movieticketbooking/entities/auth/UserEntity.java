@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class UserEntity extends BaseEntity {
 
     @Id
@@ -41,7 +42,7 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     List<SessionEntity> userSessions;
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user", fetch = FetchType.EAGER)
     ProfileEntity profile;
 
     @ElementCollection(targetClass = RoleEnum.class, fetch = FetchType.EAGER)
