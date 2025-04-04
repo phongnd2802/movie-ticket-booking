@@ -43,6 +43,7 @@ dependencies {
 
     implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
 
+
     implementation("org.redisson:redisson:3.45.0")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.14.1")
     implementation("org.springframework.boot:spring-boot-starter-actuator")

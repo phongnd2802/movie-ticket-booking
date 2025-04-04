@@ -13,12 +13,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -50,7 +48,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             "/api/v1/auth/resend-otp",
             "/api/v1/hi",
             "/api/v1/actuator/health",
-            "/api/v1/actuator/**"
+            "/api/v1/actuator/**",
+            "/api/v1/address/**"
     );
 
     @Override

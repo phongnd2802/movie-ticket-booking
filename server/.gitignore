@@ -40,3 +40,4 @@ environment/minio
 environment/postgres
 environment/prometheus
 environment/grafana
+scripts/venv

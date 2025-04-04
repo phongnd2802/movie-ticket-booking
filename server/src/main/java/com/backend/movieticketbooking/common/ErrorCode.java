@@ -25,6 +25,9 @@ public enum ErrorCode {
     FORBIDDEN(40003, "Forbidden"),
 
     GENRE_ALREADY_EXISTS(40022, "Genre already exists"),
+
+    ADDRESS_NOT_FOUND(40023, "Adress not found"),
+    CINEMA_ALREADY_EXISTS(40024, "CINEMA already exists"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;

@@ -60,6 +60,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/hi").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/movie/**").hasAuthority("ADMIN")
+                        .requestMatchers("/address/**").permitAll()
+                        .requestMatchers("/cinema/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
