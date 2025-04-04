@@ -13,6 +13,7 @@ public enum ErrorCode {
     USER_AGENT_NOT_SUPPORTED(40011, "user agent not supported"),
     IP_ADDRESS_EMPTY(40012, "ip address is empty"),
     AUTHENTICATION_FAILED(40013, "authentication failed"),
+    EMAIL_NOT_VERIFIED(40025, "email not verified"),
     EMAIL_ALREADY_EXISTS(40014, "email already exists"),
     OTP_SESSION_EXPIRED(40015, "otp session expired"),
     OTP_DOES_NOT_MATCH(40016, "otp does not match"),
@@ -28,6 +29,11 @@ public enum ErrorCode {
 
     ADDRESS_NOT_FOUND(40023, "Adress not found"),
     CINEMA_ALREADY_EXISTS(40024, "CINEMA already exists"),
+    CINEMA_NOT_FOUND(40025, "CINEMA not found"),
+
+    INVALID_COUPLE_TYPE_SEAT_NUMBER(40026, "Invalid couple type seat number"),
+    INVALID_STANDARD_TYPE_SEAT_NUMBER(40027, "Invalid standard type seat number"),
+    INVALID_TOTAL_SEAT_NUMBER(40027, "Invalid total seat number"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;

@@ -104,6 +104,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
+        if (!userEntity.get().isUserVerified()) {
+            throw new BadRequestException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

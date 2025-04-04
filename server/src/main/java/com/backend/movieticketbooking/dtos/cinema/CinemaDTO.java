@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 public class CinemaDTO {
+    private int cinemaId;
     private String cinemaName;
     private String cinemaStreet;
     private String cinemaProvince;

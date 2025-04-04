@@ -3,6 +3,8 @@ package com.backend.movieticketbooking.controllers;
 
 import com.backend.movieticketbooking.common.ApiResponse;
 import com.backend.movieticketbooking.dtos.cinema.CinemaDTO;
+import com.backend.movieticketbooking.dtos.cinema.CinemaHallDTO;
+import com.backend.movieticketbooking.dtos.cinema.request.CreateCinemaHallRequest;
 import com.backend.movieticketbooking.services.cinema.CinemaService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +29,11 @@ public class CinemaController {
         CinemaDTO result = cinemaService.createCinema(request);
 
         return ApiResponse.success(result);
+    }
+
+    @PostMapping("/hall")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<CinemaHallDTO> addCinemaHall(@RequestBody CreateCinemaHallRequest request) {
+        return ApiResponse.success(cinemaService.createHall(request));
     }
 }
