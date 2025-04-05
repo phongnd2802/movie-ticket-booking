@@ -1,15 +1,14 @@
 package com.backend.movieticketbooking.security.userprinciple;
 
-import com.backend.movieticketbooking.entities.auth.ProfileEntity;
 import com.backend.movieticketbooking.entities.auth.UserEntity;
 import com.backend.movieticketbooking.repositories.UserRepository;
 import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
 import com.backend.movieticketbooking.services.cache.local.LocalCacheService;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,15 +20,19 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserDetailService implements UserDetailsService {
 
+    @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    @Qualifier("userCacheService")
     LocalCacheService<String, UserDetails> userLocalCacheService;
 
+    @Autowired
     DistributedCacheService distributedCacheService;
+
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

@@ -39,6 +39,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,37 +55,52 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthServiceImpl implements AuthService {
 
+    @Autowired
     DistributedCacheService redisDistributedService;
 
+    @Autowired
     JwtProvider jwtService;
 
+
+    @Autowired
     UserRepository userRepository;
 
+    @Autowired
     ProfileRepository profileRepository;
 
+    @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
     UserMapper userMapper;
 
+    @Autowired
     ProfileMapper profileMapper;
 
+    @Autowired
     KafkaProducer kafkaProducer;
 
+    @Autowired
     UserDetailService userDetailService;
 
+    @Autowired
     SessionRepository sessionRepository;
 
+    @Autowired
     @PersistenceContext
     EntityManager entityManager;
 
+    @Autowired
+    @Qualifier("userCacheService")
     LocalCacheService<String, UserDetails> userLocalCacheService;
 
+    @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
     SnowflakeGenerator snowflakeGenerator;
 
     private static final Long OTP_EXPIRED_TIME = 60L;
