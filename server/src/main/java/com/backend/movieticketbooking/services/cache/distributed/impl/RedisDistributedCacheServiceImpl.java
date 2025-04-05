@@ -66,7 +66,6 @@ public class RedisDistributedCacheServiceImpl implements DistributedCacheService
     @Override
     public <T> T getObject(String key, Class<T> targetClass) {
        Object result = redisTemplate.opsForValue().get(key);
-       log.info("get Cache: {}", result);
        if (result == null) {
            return null;
        }

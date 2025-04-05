@@ -54,7 +54,7 @@ public class MovieEntity extends BaseEntity {
     @ManyToMany(mappedBy = "movies")
     List<GenreEntity> genres;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "show_id")
     List<ShowEntity> shows;
 

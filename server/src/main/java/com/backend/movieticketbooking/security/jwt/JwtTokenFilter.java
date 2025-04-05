@@ -49,7 +49,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             "/api/v1/hi",
             "/api/v1/actuator/health",
             "/api/v1/actuator/**",
-            "/api/v1/address/**"
+            "/api/v1/address/**",
+            "/api/v1/movie/{id}"
     );
 
     @Override

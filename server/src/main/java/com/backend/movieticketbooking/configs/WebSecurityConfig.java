@@ -59,6 +59,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/auth/resend-otp").permitAll()
                         .requestMatchers("/hi").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/movie/{id}").permitAll()
                         .requestMatchers("/movie/**").hasAuthority("ADMIN")
                         .requestMatchers("/address/**").permitAll()
                         .requestMatchers("/cinema/**").hasAuthority("ADMIN")

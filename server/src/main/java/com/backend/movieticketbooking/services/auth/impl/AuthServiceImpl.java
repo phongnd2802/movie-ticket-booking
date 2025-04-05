@@ -202,14 +202,14 @@ public class AuthServiceImpl implements AuthService {
         redisDistributedService.setStringTTL(getUserKeySession(hashedEmail), "1", OTP_EXPIRED_TIME, TimeUnit.SECONDS);
 
         // 7. Send OTP message to Kafka for further processing
-//        try {
-//            OtpMessage message = new OtpMessage(userEntity.getUserEmail(), newOtp);
-//            String messageJson = objectMapper.writeValueAsString(message);
-//            kafkaProducer.sendSync("otp-auth-topic", messageJson);
-//        } catch (JsonProcessingException e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e);
-//        }
+        try {
+            OtpMessage message = new OtpMessage(userEntity.getUserEmail(), newOtp);
+            String messageJson = objectMapper.writeValueAsString(message);
+            kafkaProducer.sendSync("otp-auth-topic", messageJson);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
 
         // 8. Return the registration response with the encoded hashed email
         return RegisterResponse.builder()
@@ -257,7 +257,7 @@ public class AuthServiceImpl implements AuthService {
 
         sessionRepository.deleteById(claims.getSubject());
 
-        Long remainingTime = jwtService.getTokenExpiration(claims) / 1000;
+        long remainingTime = jwtService.getTokenExpiration(claims) / 1000;
         redisDistributedService.setStringTTL(getUserKeyBlackList(claims.getSubject()), "1", remainingTime, TimeUnit.SECONDS);
     }
 

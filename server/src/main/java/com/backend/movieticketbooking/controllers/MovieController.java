@@ -49,4 +49,10 @@ public class MovieController {
         MovieDTO result = movieService.createMovie(request);
         return ApiResponse.success(result);
     }
+
+    @GetMapping("/{id}")
+    public ApiResponse<MovieDTO> getMovie(@PathVariable Integer id) {
+        MovieDTO result= movieService.getMovieById(id);
+        return ApiResponse.success(result);
+    }
 }

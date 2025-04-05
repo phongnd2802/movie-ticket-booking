@@ -14,6 +14,7 @@ import com.backend.movieticketbooking.exceptions.BadRequestException;
 import com.backend.movieticketbooking.services.auth.AuthService;
 import io.netty.util.internal.StringUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,7 +32,7 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/login")
-    public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
+    public ApiResponse<LoginResponse> login(@RequestBody @Valid LoginRequest request, HttpServletRequest httpServletRequest) {
         String userAgent = httpServletRequest.getHeader("User-Agent");
         if (StringUtil.isNullOrEmpty(userAgent)) {
             throw new BadRequestException(ErrorCode.USER_AGENT_NOT_SUPPORTED);

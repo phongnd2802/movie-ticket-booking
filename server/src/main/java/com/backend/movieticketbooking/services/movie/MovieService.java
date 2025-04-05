@@ -5,5 +5,5 @@ import com.backend.movieticketbooking.dtos.movie.request.CreateMovieRequest;
 
 public interface MovieService {
     MovieDTO createMovie(CreateMovieRequest request);
-    MovieDTO getMovieById(Long movieId);
+    MovieDTO getMovieById(int movieId);
 }
