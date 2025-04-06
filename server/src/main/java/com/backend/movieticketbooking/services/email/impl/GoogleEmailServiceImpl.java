@@ -2,7 +2,9 @@ package com.backend.movieticketbooking.services.email.impl;
 
 import com.backend.movieticketbooking.services.email.EmailService;
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -10,10 +12,11 @@ import org.springframework.stereotype.Service;
 
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class GoogleEmailServiceImpl implements EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    JavaMailSender mailSender;
 
     private static final String EMAIL_FROM = "backend.movieticketbooking@gmail.com";
 

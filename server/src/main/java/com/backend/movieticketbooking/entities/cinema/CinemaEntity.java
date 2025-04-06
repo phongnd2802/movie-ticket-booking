@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class CinemaEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,9 +23,11 @@ public class CinemaEntity extends BaseEntity {
 
     String cinemaName;
 
+    String cinemaStreet;
+
     @OneToOne
-    @JoinColumn(name = "adcress_id")
-    AddressEntity adress;
+    @JoinColumn(name = "address_id")
+    AddressEntity address;
 
     @OneToMany
     @JoinColumn(name = "cinema_id")

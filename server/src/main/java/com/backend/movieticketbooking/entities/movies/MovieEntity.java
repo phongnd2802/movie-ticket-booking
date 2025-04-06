@@ -17,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class MovieEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +26,7 @@ public class MovieEntity extends BaseEntity {
 
     String movieName;
 
+    @Column(columnDefinition = "TEXT")
     String movieDescription;
 
     int movieAge;
@@ -52,7 +54,7 @@ public class MovieEntity extends BaseEntity {
     @ManyToMany(mappedBy = "movies")
     List<GenreEntity> genres;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "show_id")
     List<ShowEntity> shows;
 

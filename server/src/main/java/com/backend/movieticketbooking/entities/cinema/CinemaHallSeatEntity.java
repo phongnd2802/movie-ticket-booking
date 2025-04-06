@@ -15,10 +15,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class CinemaHallSeatEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "seat_id")
     int seatId;
 
     String seatRow;
@@ -29,4 +29,8 @@ public class CinemaHallSeatEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "cinemaHallSeat", fetch = FetchType.LAZY)
     List<ShowSeatEntity> showSeats;
+
+    @ManyToOne
+    @JoinColumn(name = "cinema_hall_id", nullable = false)
+    CinemaHallEntity cinemaHall;
 }

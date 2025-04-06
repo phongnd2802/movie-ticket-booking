@@ -50,6 +50,7 @@ services:
       sleep 5;
       /usr/bin/mc config --quiet host add dmlminio http://minio:9000 minioadmin minioadmin;
       /usr/bin/mc mb --quiet dmlminio/movies;
+      /usr/bin/mc mb --quiet dmlminio/actors;
       "
     depends_on:
       - minio

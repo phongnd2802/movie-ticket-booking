@@ -4,6 +4,9 @@ import com.backend.movieticketbooking.services.cache.distributed.DistributedCach
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,12 +19,13 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RedisDistributedCacheServiceImpl implements DistributedCacheService {
 
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+    RedisTemplate<String, Object> redisTemplate;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper;
 
     @Override
     public void setString(String key, String value) {
@@ -62,7 +66,6 @@ public class RedisDistributedCacheServiceImpl implements DistributedCacheService
     @Override
     public <T> T getObject(String key, Class<T> targetClass) {
        Object result = redisTemplate.opsForValue().get(key);
-       log.info("get Cache: {}", result);
        if (result == null) {
            return null;
        }
@@ -77,7 +80,6 @@ public class RedisDistributedCacheServiceImpl implements DistributedCacheService
                return null;
            }
        }
-
        // Nếu result là String
         if (result instanceof String) {
             try {

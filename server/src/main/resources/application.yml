@@ -1,10 +1,12 @@
 server:
+  address: 0.0.0.0
   port: 8080
   tomcat:
     threads:
       max: 200
   servlet:
     context-path: /api/v1
+
 
 spring:
   application:
@@ -18,6 +20,10 @@ spring:
     password: secret
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
+  threads:
+    virtual:
+      enabled: true
+
 
   jpa:
     database: postgresql
@@ -27,6 +33,7 @@ spring:
       hibernate:
         format_sql: true
     show-sql: true
+
   jackson:
     serialization:
       indent-output: true
@@ -36,7 +43,6 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6666
-      password: secret
       lettuce:
         pool: #Connection pool settings
           max-active: 8 #Maximum number of active connections in the pool (uses -1 for no limit)
@@ -77,9 +83,20 @@ spring:
     listener:
       missing-topics-fatal: false
       ack-mode: manual_immediate
-  threads:
-    virtual:
+management:
+  health:
+    circuitbreakers:
       enabled: true
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - '*'
 
 resilience4j:
   circuitbreaker:
