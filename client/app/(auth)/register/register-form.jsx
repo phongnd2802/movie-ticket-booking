@@ -44,16 +44,16 @@ function RegisterForm() {
   const onSubmit = async (values) => {
     const data = JSON.stringify(values);
     const response = await handleSignUp({ endpoint: signUp, data });
-    if (response.statuscode === 200) {
+    if (response.code === 20000) {
       const token = response.metadata.token;
-      const ttl = response.metadata.ttl;
-      await setCookie("otp_token", token, ttl, `/verify-otp`);
-      router.push(`/verify-otp?token=${token}`);
-    } else if (response.statuscode === statusCode.ERR_USER_NOT_VERIFY) {
+      const email = response.metadata.email;
+      await setCookie("otp_token", token, 60, `/verify-otp`);
+      router.push(`/verify-otp?token=${token}&email=${email}`);
+    } else if (response.code === statusCode.ERR_USER_NOT_VERIFY) {
       toast.info(response.message, successLogin);
       const token = response.metadata.token;
       const ttl = response.metadata.ttl;
-      await setCookie("otp_token", token, ttl, `/verify-otp`);
+      await setCookie("otp_token", token, 60, `/verify-otp`);
       router.push(`/verify-otp?token=${token}`);
     } else {
       toast.error(response.message, successLogin);

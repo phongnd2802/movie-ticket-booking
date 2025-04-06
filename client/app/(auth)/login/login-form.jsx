@@ -28,10 +28,15 @@ function LoginForm() {
   });
 
   useEffect(() => {
-    const isLogined = getCookie("at");
-    if (isLogined) {
-      router.push("/");
-    }
+    const checkToken = async () => {
+      async () => {
+        const isLogined = await getCookie("at");
+        if (isLogined) {
+          router.push("/");
+        }
+      };
+    };
+    checkToken();
   }, [router]);
 
   const onSubmit = async (values) => {

@@ -1,7 +1,6 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -18,23 +17,17 @@ import { submitVerify } from "@/endpoint/auth";
 import Countdown from "@/components/page/countDown";
 import InputOTP from "@/components/page/inputOtp";
 import { useOtp } from "@/hooks/useOtp";
+import { useSearchParams } from "next/navigation";
 
 function FormOtpSubmit() {
   const router = useRouter();
-  const { otp, email, handleOtpChange } = useOtp();
+  const { otp, handleOtpChange } = useOtp();
+  const searchParam = useSearchParams();
+  const email = searchParam.get("email") || "";
 
   const form = useForm({
     defaultValues: { otp: "" },
   });
-
-  // Nếu không đang có phiên verify thì đá về home
-  useEffect(() => {
-    const OTP_TOKEN = "otp_token";
-    const token = getCookie(OTP_TOKEN);
-    if (!token) {
-      router.push("/");
-    }
-  }, [router]);
 
   // gửi xác thực otp
   const onSubmit = async () => {
