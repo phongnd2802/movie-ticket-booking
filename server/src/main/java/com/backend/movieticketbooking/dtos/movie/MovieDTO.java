@@ -1,13 +1,14 @@
 package com.backend.movieticketbooking.dtos.movie;
 
 
+import com.backend.movieticketbooking.dtos.show.ShowDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Builder
@@ -39,4 +40,10 @@ public class MovieDTO {
     private String movieDirector;
 
     private String movieProducer;
+
+    private List<ActorDTO> actors;
+
+    private List<GenreDTO> genres;
+
+    private List<ShowDTO> shows;
 }

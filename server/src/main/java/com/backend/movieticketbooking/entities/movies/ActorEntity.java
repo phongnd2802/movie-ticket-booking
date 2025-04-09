@@ -29,9 +29,6 @@ public class ActorEntity extends BaseEntity {
 
     LocalDate actorBirthDate;
 
-    @ManyToMany(mappedBy = "actors")
-    List<GenreEntity> genres;
-
     @ManyToMany
     @JoinTable(
         name = "actor_movie",

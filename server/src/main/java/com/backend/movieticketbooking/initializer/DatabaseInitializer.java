@@ -50,7 +50,7 @@ public class DatabaseInitializer {
 
     MovieRepository movieRepository;
 
-   // @PostConstruct
+    //@PostConstruct
     @Transactional
     public void createAdminAccount() {
         log.info("Creating admin account");
@@ -78,7 +78,7 @@ public class DatabaseInitializer {
     }
 
     static final int BATCH_SIZE = 1000;
-   //@PostConstruct
+    //@PostConstruct
     @Transactional
     public void initAddressData() {
         log.info("Creating address data");

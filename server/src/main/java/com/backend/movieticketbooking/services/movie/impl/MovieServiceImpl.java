@@ -14,9 +14,9 @@ import com.backend.movieticketbooking.services.cache.local.LocalCacheService;
 import com.backend.movieticketbooking.services.lock.DistributedLockService;
 import com.backend.movieticketbooking.services.lock.DistributedLocker;
 import com.backend.movieticketbooking.services.movie.MovieService;
+import com.backend.movieticketbooking.services.movie.cache.models.MovieCache;
 import com.backend.movieticketbooking.services.storage.StorageService;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +55,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Autowired
     @Qualifier("movieLocalCacheService")
-    LocalCacheService<String, MovieEntity> movieLocalCacheService;
+    LocalCacheService<String, MovieCache> movieLocalCacheService;
 
     @Override
     @Transactional
@@ -91,25 +91,25 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public MovieDTO getMovieById(int movieId) {
-        MovieEntity movieCached = movieLocalCacheService.get(getMovieKey(movieId));
+    public MovieCache getMovieById(int movieId) {
+        MovieCache movieCached = movieLocalCacheService.get(getMovieKey(movieId));
         if (movieCached != null) {
             log.info("GET MOVIE ID {} FROM LOCAL CACHE", movieId);
-            return movieMapper.toMovieDTO(movieCached);
+            return movieCached;
         }
 
         // 1. Lấy thông tin phim từ distributed cache
-        movieCached = distributedCacheService.getObject(getMovieKey(movieId), MovieEntity.class);
+        movieCached = distributedCacheService.getObject(getMovieKey(movieId), MovieCache.class);
         if (movieCached != null) {
             if (movieCached.getMovieId() == -1) {
-                // Khi trong database trước đó không có, thì khi đọc distributed cache  qua movieId này sẽ nhận được là -1
+                // Khi trong database trước đó không có, thì khi đọc distributed cache qua movieId này sẽ nhận được là -1
                 log.info("GET MOVIE ID {} NOT FOUND FROM DISTRIBUTED CACHE", movieId);
                 throw new BadRequestException(ErrorCode.MOVIE_NOT_FOUND);
             }
             // Nếu có, quá ngon
             log.info("GET MOVIE ID {} FROM DISTRIBUTED CACHE", movieId);
             movieLocalCacheService.put(getMovieKey(movieId), movieCached);
-            return movieMapper.toMovieDTO(movieCached);
+            return movieCached;
         }
 
         // Nếu không có trong distributed cache , cho 1 request vào database, các thằng còn lại đứng chờ
@@ -125,10 +125,10 @@ public class MovieServiceImpl implements MovieService {
             }
 
             // Đọc lại distributed cache
-            movieCached = distributedCacheService.getObject(getMovieKey(movieId), MovieEntity.class);
+            movieCached = distributedCacheService.getObject(getMovieKey(movieId), MovieCache.class);
             if (movieCached != null) {
                 movieLocalCacheService.put(getMovieKey(movieId), movieCached);
-                return movieMapper.toMovieDTO(movieCached);
+                return movieCached;
             }
 
             // Tìm trong database
@@ -136,17 +136,18 @@ public class MovieServiceImpl implements MovieService {
             if (movie.isEmpty()) {
                 // Nếu database không có, set set lại vào cache với time là 5s, tránh request bẩn
                 log.info("GET MOVIE ID {} NOT FOUND FROM DATABASE", movieId);
-                distributedCacheService.setObjectTTL(getMovieKey(movieId), movieEmpty(), 5L, TimeUnit.SECONDS);
-                movieLocalCacheService.put(getMovieKey(movieId), movieEmpty());
+                distributedCacheService.setObjectTTL(getMovieKey(movieId), movieCacheEmpty(), 5L, TimeUnit.SECONDS);
+                movieLocalCacheService.put(getMovieKey(movieId), movieCacheEmpty());
                 throw new BadRequestException(ErrorCode.MOVIE_NOT_FOUND);
             }
 
             // Set vào distributed cache
             log.info("GET MOVIE ID {} FROM DATABASE", movieId);
             MovieEntity movieEntity = movie.get();
-            distributedCacheService.setObjectTTL(getMovieKey(movieEntity.getMovieId()), movieEntity, 60L, TimeUnit.SECONDS);
-            movieLocalCacheService.put(getMovieKey(movieId), movieEntity);
-            return movieMapper.toMovieDTO(movieEntity);
+            movieCached = MovieCache.toMovieCache(movieEntity);
+            distributedCacheService.setObjectTTL(getMovieKey(movieEntity.getMovieId()), movieCached, 300L, TimeUnit.SECONDS);
+            movieLocalCacheService.put(getMovieKey(movieId), movieCached);
+            return movieCached;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }finally {
@@ -159,9 +160,10 @@ public class MovieServiceImpl implements MovieService {
         return "movie:" + movieId;
     }
 
-    private MovieEntity movieEmpty() {
-        return MovieEntity.builder()
+    private MovieCache movieCacheEmpty() {
+        return MovieCache.builder()
                 .movieId(-1)
                 .build();
     }
+
 }

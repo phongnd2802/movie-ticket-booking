@@ -2,6 +2,7 @@ package com.backend.movieticketbooking.entities.movies;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
 import com.backend.movieticketbooking.entities.show.ShowEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -54,11 +55,10 @@ public class MovieEntity extends BaseEntity {
     @ManyToMany(mappedBy = "movies")
     List<GenreEntity> genres;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "show_id")
+    @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY)
+    @JsonIgnore
     List<ShowEntity> shows;
 
     @ManyToMany(mappedBy = "movies")
     List<ActorEntity> actors;
-
 }

@@ -1,8 +1,9 @@
 package com.backend.movieticketbooking.services.show.impl;
 
 import com.backend.movieticketbooking.common.ErrorCode;
-import com.backend.movieticketbooking.dtos.show.CreateShowRequest;
+import com.backend.movieticketbooking.dtos.show.request.CreateShowRequest;
 import com.backend.movieticketbooking.dtos.show.ShowDTO;
+import com.backend.movieticketbooking.dtos.show.response.CreateShowResponse;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallEntity;
 import com.backend.movieticketbooking.entities.movies.MovieEntity;
 import com.backend.movieticketbooking.entities.show.ShowEntity;
@@ -50,7 +51,7 @@ public class ShowServiceImpl implements ShowService {
 
     @Override
     @Transactional
-    public ShowDTO createShow(CreateShowRequest request) {
+    public CreateShowResponse createShow(CreateShowRequest request) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
         try {
             LocalDateTime startTime = LocalDateTime.parse(request.getShowStartTime(), formatter);
@@ -80,6 +81,7 @@ public class ShowServiceImpl implements ShowService {
                     .showStartTime(startTime)
                     .showEndTime(endTime)
                     .cinemaHall(cinemaHall)
+                    .movie(movie)
                     .build();
 
             showRepository.save(showEntity);
@@ -107,11 +109,12 @@ public class ShowServiceImpl implements ShowService {
 
             showSeatRepository.saveAll(showSeatEntities);
 
-            return showMapper.toShowDTO(showEntity);
+            return showMapper.toCreateShowResponse(showEntity);
         } catch (DateTimeParseException e) {
             throw new BadRequestException(ErrorCode.INVALID_FORMAT_TIME);
         }
     }
+
 
     boolean isTimeSlotAvailable(int cinemaHallId, LocalDateTime startTime, LocalDateTime endTime) {
         List<ShowEntity> existingShows = showRepository.findShowsByCinemaHallIdAndTimeSlot(

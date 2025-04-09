@@ -1,6 +1,7 @@
 package com.backend.movieticketbooking.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
@@ -19,9 +20,11 @@ import java.time.LocalDateTime;
 public abstract class BaseEntity {
     @CreationTimestamp // Automating fill time value when entity is stored to database
     @Column(updatable = false, nullable = false)
+    @JsonIgnore
     LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(nullable = false)
+    @JsonIgnore
     LocalDateTime updatedAt;
 }

@@ -38,7 +38,7 @@ out/
 environment/kafka
 environment/minio
 environment/postgres
-environment/prometheus
+environment/prometheus/data
 environment/grafana
 scripts/venv
 benchmark

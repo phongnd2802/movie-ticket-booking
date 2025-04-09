@@ -4,6 +4,7 @@ import com.backend.movieticketbooking.entities.BaseEntity;
 import com.backend.movieticketbooking.entities.booking.BookingEntity;
 import com.backend.movieticketbooking.entities.booking.CouponEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallEntity;
+import com.backend.movieticketbooking.entities.movies.MovieEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -37,6 +38,10 @@ public class ShowEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "show", fetch = FetchType.LAZY)
     List<BookingEntity> bookings;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "movie_id", nullable = false)
+    MovieEntity movie;
 
     @OneToMany(mappedBy = "show", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<ShowSeatEntity> showSeats;

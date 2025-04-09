@@ -16,5 +16,4 @@ public class AuthCacheConfig {
         return new GuavaLocalCacheService<>(1000L, 900L);
     }
 
-
 }

@@ -1,15 +1,17 @@
 package com.backend.movieticketbooking.dtos.show;
 
 
+import com.backend.movieticketbooking.dtos.cinema.CinemaHallDTO;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 
 @Data
 @Builder
 public class ShowDTO {
     private int showId;
-    private LocalDateTime showStartTime;
-    private LocalDateTime showEndTime;
+    private String showStartTime;
+    private String showEndTime;
+
+    private CinemaHallDTO cinemaHall;
 }

@@ -1,4 +1,4 @@
-package com.backend.movieticketbooking.dtos.show;
+package com.backend.movieticketbooking.dtos.show.request;
 
 
 import com.backend.movieticketbooking.enums.SeatTypeEnum;
