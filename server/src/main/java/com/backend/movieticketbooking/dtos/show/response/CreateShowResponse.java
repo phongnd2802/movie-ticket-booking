@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public class CreateShowResponse {
     private int showId;
-    private LocalDateTime showStartTime;
-    private LocalDateTime showEndTime;
+    private int cinemaSeatsNumberAvailable;
+    private String showStartTime;
+    private String showEndTime;
 }

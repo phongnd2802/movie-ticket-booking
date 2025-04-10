@@ -15,5 +15,4 @@ public interface CinemaHallSeatMapper {
 
     List<CinemaHallSeatDTO> toCinemaHallSeatDTO(List<CinemaHallSeatEntity> cinemaHallSeatEntities);
 
-
 }

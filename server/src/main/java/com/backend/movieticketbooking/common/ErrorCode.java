@@ -27,7 +27,7 @@ public enum ErrorCode {
 
     GENRE_ALREADY_EXISTS(40022, "Genre already exists"),
 
-    ADDRESS_NOT_FOUND(40023, "Adress not found"),
+    ADDRESS_NOT_FOUND(40023, "Address not found"),
     CINEMA_ALREADY_EXISTS(40024, "CINEMA already exists"),
     CINEMA_NOT_FOUND(40025, "CINEMA not found"),
 
@@ -40,6 +40,8 @@ public enum ErrorCode {
     MOVIE_NOT_FOUND(40029, "Movie not found"),
     CINEMA_HALL_NOT_FOUND(40030, "CINEMA hall not found"),
     SHOW_ALREADY_EXISTS(40031, "A show already exists during this time period"),
+    SHOW_NOT_FOUND(40032, "Show not found"),
+    SHOW_IS_PLAYING_OR_IS_FINISHED(40033, "Show is playing or is finished"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;

@@ -95,7 +95,6 @@ public class CinemaServiceImpl implements CinemaService {
             throw new BadRequestException(ErrorCode.CINEMA_NOT_FOUND);
         }
 
-        Integer totalSeats = coupleSeatNumber + standardSeatNumber;
 
         List<CinemaHallSeatEntity> seats = new ArrayList<>();
         int totalStandardRows = (int) standardSeatNumber / 16;
@@ -103,7 +102,6 @@ public class CinemaServiceImpl implements CinemaService {
         CinemaHallEntity cinemaHall = CinemaHallEntity.builder()
                 .cinema(foundCinema.get())
                 .cinemaHallName(request.getCinemaHallName())
-                .cinemaSeatsNumberAvailable(totalSeats)
                 .build();
 
         cinemaHallRepository.save(cinemaHall);
@@ -135,13 +133,12 @@ public class CinemaServiceImpl implements CinemaService {
         return CreateCinemaHallResponse.builder()
                 .cinemaId(foundCinema.get().getCinemaId())
                 .cinemaHallName(cinemaHall.getCinemaHallName())
-                .cinemaSeatsNumberAvailable(cinemaHall.getCinemaSeatsNumberAvailable())
                 .cinemaHallId(cinemaHall.getCinemaHallId())
                 .cinemaHallSeats(cinemaHallSeatMapper.toCinemaHallSeatDTO(cinemaHall.getCinemaHallSeats()))
                 .build();
     }
 
-    CinemaHallSeatEntity generateCinemaHallSeat(String row, String col, SeatTypeEnum seatType, CinemaHallEntity cinemaHall) {
+    private CinemaHallSeatEntity generateCinemaHallSeat(String row, String col, SeatTypeEnum seatType, CinemaHallEntity cinemaHall) {
         return CinemaHallSeatEntity.builder()
                 .seatRow(row)
                 .seatCol(col)

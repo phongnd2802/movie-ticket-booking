@@ -1,9 +1,8 @@
-package com.backend.movieticketbooking.controllers;
+package com.backend.movieticketbooking.controllers.admin;
 
 
 import com.backend.movieticketbooking.common.ApiResponse;
 import com.backend.movieticketbooking.dtos.cinema.CinemaDTO;
-import com.backend.movieticketbooking.dtos.cinema.CinemaHallDTO;
 import com.backend.movieticketbooking.dtos.cinema.request.CreateCinemaHallRequest;
 import com.backend.movieticketbooking.dtos.cinema.response.CreateCinemaHallResponse;
 import com.backend.movieticketbooking.services.cinema.CinemaService;

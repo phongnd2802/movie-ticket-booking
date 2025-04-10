@@ -13,7 +13,6 @@ public class CreateCinemaHallResponse {
     private int cinemaId;
     private int cinemaHallId;
     private String cinemaHallName;
-    private int cinemaSeatsNumberAvailable;
 
     private List<CinemaHallSeatDTO> cinemaHallSeats;
 
