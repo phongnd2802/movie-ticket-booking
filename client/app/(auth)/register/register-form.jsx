@@ -17,7 +17,6 @@ import { Mail } from "lucide-react";
 import { Phone } from "lucide-react";
 import { Lock } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/endpoint/auth";
 import { handleSignUp } from "@/lib/auth/signUp";

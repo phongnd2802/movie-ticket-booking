@@ -3,18 +3,13 @@ import { getCookie } from "../cookie";
 const fetchTtl = async (endpoint) => {
   try {
     const OTP_TOKEN = "otp_token";
-    const token = await getCookie(OTP_TOKEN);
-    const response = await axios.get(
-      endpoint,
-      {
-        params: { token: token },
+    const token = getCookie(OTP_TOKEN);
+    const response = await axios.get(endpoint, {
+      headers: {
+        "Content-Type": "application/json",
+        OTP_TOKEN: token,
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    });
     if (response.status === 200) {
       const _data = await response.data;
       return _data.metadata;
@@ -29,18 +24,20 @@ const fetchTtl = async (endpoint) => {
 const handleVerifyOtp = async (otp, email, endpoint) => {
   try {
     const otpCode = otp.join("");
+    console.log(otpCode);
     if (otpCode.length !== 6) {
       alert("Vui lòng nhập đầy đủ 6 chữ số OTP.");
       return;
     }
     const OTP_TOKEN = "otp_token";
-    const token = await getCookie(OTP_TOKEN);
+    const token = getCookie(OTP_TOKEN);
     const response = await axios.post(
       endpoint,
-      { email: email, otp: otpCode, token: token },
+      { email: email, otp: otpCode },
       {
         headers: {
           "Content-Type": "application/json",
+          OTP_TOKEN: token,
         },
       }
     );

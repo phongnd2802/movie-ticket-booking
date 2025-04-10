@@ -2,14 +2,11 @@ import axios from "axios";
 
 const handleSignUp = async ({ endpoint, data }) => {
   try {
-    console.log("endpoint:::", endpoint);
-    console.log("data:::", data);
     const response = await axios.post(endpoint, data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    console.log("response:::", response);
     if (response.status === 200) {
       return response.data;
     }

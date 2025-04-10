@@ -123,8 +123,8 @@ resilience4j:
 
 minio:
   endpoint: http://127.0.0.1:9000
-  access-key: GokmCJ8vcRjxE1svgv8X
-  secret-key: ClN9oGx9y9VZOlUyNM5K2EgJCBBFDCPpR48ugB2i
+  access-key: lxlnUFYE5z9YPHffLgoy
+  secret-key: cpwevTb0hinY5Y2x5dcVPQuFAQb6OVZkzhIbHPnw
 
 jwt:
   secret: A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2
