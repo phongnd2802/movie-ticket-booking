@@ -2,6 +2,7 @@ package com.backend.movieticketbooking.entities.cinema;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
 import com.backend.movieticketbooking.entities.other.AddressEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -29,7 +30,8 @@ public class CinemaEntity extends BaseEntity {
     @JoinColumn(name = "address_id")
     AddressEntity address;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "cinema_id")
+    @JsonIgnore
     List<CinemaHallEntity> cinemaHalls;
 }

@@ -1,8 +1,9 @@
 package com.backend.movieticketbooking.services.show;
 
-import com.backend.movieticketbooking.dtos.show.CreateShowRequest;
-import com.backend.movieticketbooking.dtos.show.ShowDTO;
+import com.backend.movieticketbooking.dtos.show.request.CreateShowRequest;
+import com.backend.movieticketbooking.dtos.show.response.CreateShowResponse;
 
 public interface ShowService {
-    ShowDTO createShow(CreateShowRequest request);
+    CreateShowResponse createShow(CreateShowRequest request);
 }
+

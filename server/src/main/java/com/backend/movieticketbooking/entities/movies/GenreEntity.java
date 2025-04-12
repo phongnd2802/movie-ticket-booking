@@ -33,12 +33,5 @@ public class GenreEntity extends BaseEntity {
     )
     List<MovieEntity> movies;
 
-    @ManyToMany
-    @JoinTable(
-        name = "movie_actor",
-        joinColumns = @JoinColumn(name = "genre_id"),
-        inverseJoinColumns = @JoinColumn(name = "actor_id")
-    )
-    List<ActorEntity> actors;
 
 }

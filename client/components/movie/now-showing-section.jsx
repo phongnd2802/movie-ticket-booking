@@ -23,7 +23,6 @@ export function NowShowingSection({ movies }) {
     );
   }
 
-  // Take only the first 2 movies to display
   const displayMovies = movies.slice(0, 2);
 
   return (

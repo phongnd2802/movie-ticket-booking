@@ -41,9 +41,7 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
-
-    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
-
+    
 
     implementation("org.redisson:redisson:3.45.0")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.14.1")

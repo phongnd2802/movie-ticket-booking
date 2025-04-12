@@ -2,8 +2,8 @@ package com.backend.movieticketbooking.controllers;
 
 
 import com.backend.movieticketbooking.common.ApiResponse;
-import com.backend.movieticketbooking.dtos.show.CreateShowRequest;
-import com.backend.movieticketbooking.dtos.show.ShowDTO;
+import com.backend.movieticketbooking.dtos.show.request.CreateShowRequest;
+import com.backend.movieticketbooking.dtos.show.response.CreateShowResponse;
 import com.backend.movieticketbooking.services.show.ShowService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("show")
+@RequestMapping("/admin/show")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ShowController {
@@ -24,8 +24,8 @@ public class ShowController {
 
     @PostMapping("")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<ShowDTO> createShow(@RequestBody CreateShowRequest request) {
-        ShowDTO result = showService.createShow(request);
+    public ApiResponse<CreateShowResponse> createShow(@RequestBody CreateShowRequest request) {
+        CreateShowResponse result = showService.createShow(request);
         return ApiResponse.success(result);
     }
 }

@@ -4,6 +4,7 @@ import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.dtos.cinema.CinemaDTO;
 import com.backend.movieticketbooking.dtos.cinema.CinemaHallDTO;
 import com.backend.movieticketbooking.dtos.cinema.request.CreateCinemaHallRequest;
+import com.backend.movieticketbooking.dtos.cinema.response.CreateCinemaHallResponse;
 import com.backend.movieticketbooking.entities.cinema.CinemaEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallSeatEntity;
@@ -80,7 +81,7 @@ public class CinemaServiceImpl implements CinemaService {
     // 16 -> 8
     @Override
     @Transactional
-    public CinemaHallDTO createHall(CreateCinemaHallRequest request) {
+    public CreateCinemaHallResponse createHall(CreateCinemaHallRequest request) {
         Integer coupleSeatNumber = request.getSeats().get(SeatTypeEnum.COUPLE);
         Integer standardSeatNumber = request.getSeats().get(SeatTypeEnum.STANDARD);
         if (coupleSeatNumber > 8) {
@@ -131,7 +132,7 @@ public class CinemaServiceImpl implements CinemaService {
         cinemaHall.setCinemaHallSeats(seats);
         cinemaHallRepository.save(cinemaHall);
 
-        return CinemaHallDTO.builder()
+        return CreateCinemaHallResponse.builder()
                 .cinemaId(foundCinema.get().getCinemaId())
                 .cinemaHallName(cinemaHall.getCinemaHallName())
                 .cinemaSeatsNumberAvailable(cinemaHall.getCinemaSeatsNumberAvailable())

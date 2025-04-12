@@ -1,11 +1,35 @@
-import Link from "next/link";
-import Image from "./imagekit";
-import { Search, AlignRight, UserRound } from "lucide-react";
+"use client";
 
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Search, AlignRight, UserRound, LogOut } from "lucide-react";
 import { navItems } from "@/lib/data";
 import Navigation from "./navigation-menu";
+import Image from "./imagekit";
 
-function Header() {
+export default function Header() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const userFromStorage = localStorage.getItem("user");
+    if (userFromStorage) {
+      try {
+        const parsedUser = JSON.parse(userFromStorage);
+        setUser(parsedUser);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    setIsLoggedIn(false);
+  };
+
   return (
     <header className="flex items-center justify-center p-6 ">
       <div className="flex items-center justify-between w-full max-w-[85%] max-sm:max-w-[100%] max-lg:max-w-[80%] max-md:max-w-[85%] max-ssm:max-w-[90%]">
@@ -66,13 +90,32 @@ function Header() {
             ))}
           </div>
         </div>
+
+        {/* Desktop auth section */}
         <div className="flex gap-4 items-center h-auto text-[#777777] max-lg:hidden hover:cursor-pointer">
           <span>
             <Search size={16} />
           </span>
-          <div className="hover:text-textOrange text-[14px]">
-            <Link href="/login">Đăng nhập</Link>
-          </div>
+
+          {isLoggedIn ? (
+            <div className="flex items-center gap-3">
+              <div className="text-[14px] font-medium text-textOrange">
+                {user?.name || "User"}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 hover:text-textOrange text-[14px]"
+              >
+                <LogOut size={14} />
+                Đăng xuất
+              </button>
+            </div>
+          ) : (
+            <div className="hover:text-textOrange text-[14px]">
+              <Link href="/login">Đăng nhập</Link>
+            </div>
+          )}
+
           <div>
             <Image
               path="page/join-member-Gstar.svg"
@@ -83,15 +126,28 @@ function Header() {
           </div>
         </div>
 
+        {/* Mobile auth section */}
         <div className="hidden max-lg:flex gap-4 items-center h-auto text-[#777777] hover:cursor-pointer">
           <div className="flex items-center gap-2 text-[14px]">
             <span>
               <UserRound size={20} />
             </span>
-            <div className="hover:text-textOrange">
-              {" "}
-              <Link href="/login">Đăng nhập</Link>
-            </div>
+            {isLoggedIn ? (
+              <div className="flex items-center gap-2">
+                <div className="text-textOrange">{user?.name || "User"}</div>
+                <button
+                  onClick={handleLogout}
+                  className="hover:text-textOrange flex items-center gap-1"
+                >
+                  <LogOut size={14} />
+                  <span className="sr-only">Đăng xuất</span>
+                </button>
+              </div>
+            ) : (
+              <div className="hover:text-textOrange">
+                <Link href="/login">Đăng nhập</Link>
+              </div>
+            )}
           </div>
           <span>
             <AlignRight size={24} />
@@ -101,5 +157,3 @@ function Header() {
     </header>
   );
 }
-
-export default Header;

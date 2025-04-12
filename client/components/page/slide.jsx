@@ -1,70 +1,46 @@
-"use client";
-import { useState, useEffect } from "react";
-import Circle from "./circle";
-import Image from "./imagekit";
-
-const IMAGE = [
-  "page/samsung.jpg",
-  "page/captam-slide",
-  "page/interstellar.jpg",
-];
+import Image from "@/components/page/imagekit";
 
 export default function Slide() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isSliding, setIsSliding] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsSliding(true);
-
-      setTimeout(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % IMAGE.length);
-        setIsSliding(false);
-      }, 500);
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const leftIndex = (currentIndex - 1 + IMAGE.length) % IMAGE.length;
-  const centerIndex = currentIndex;
-  const rightIndex = (currentIndex + 1) % IMAGE.length;
-
   return (
-    <div className="relative w-full overflow-hidden flex justify-between">
-      <div
-        className={`w-[15%] pr-2 overflow-hidden max-mds:pr-0 max-md:hidden transition-transform duration-500 ease-in-out ${
-          isSliding ? "slide-animation" : ""
-        }`}
-      >
-        <Image width={1360} height={450} path={IMAGE[leftIndex]} />
-      </div>
-
-      <div
-        className={`flex w-[70%] max-mds:px-0 px-2 max-md:w-full relative max-md:h-full
-        transition-transform duration-500 ease-in-out ${
-          isSliding ? "slide-animation" : ""
-        }`}
-      >
+    <div className="w-full relative">
+      <div className="relative w-full h-[500px] overflow-hidden">
         <Image
-          className="max-md:h-full max-md:w-full"
-          width={1360}
-          height={450}
-          path={IMAGE[centerIndex]}
+          path="page/interstellar.jpg"
+          alt="Movie Banner"
+          width={1920}
+          height={500}
+          className="w-full h-full object-cover"
         />
-        <div className="absolute bottom-2 left-[50%] flex gap-2 translate-x-[-50%]">
-          {IMAGE.map((_, index) => (
-            <Circle key={index} isShow={index === centerIndex} />
-          ))}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
+          <div className="container mx-auto px-4 pb-8 text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">
+              Nhà Gia Tiên
+            </h1>
+            <p className="text-lg md:text-xl mb-4 max-w-2xl">
+              Câu chuyện về một gia đình với những bí mật tâm linh đầy bất ngờ
+            </p>
+            <div className="flex gap-4">
+              <button className="bg-[#f26b38] hover:bg-[#fb9440] px-6 py-2 rounded-md font-medium transition-colors">
+                Mua vé ngay
+              </button>
+              <button className="bg-transparent border border-white hover:bg-white/20 px-6 py-2 rounded-md font-medium transition-colors">
+                Xem trailer
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div
-        className={`w-[15%] pl-2 overflow-hidden max-mds:pl-0 max-md:hidden transition-transform duration-500 ease-in-out ${
-          isSliding ? "slide-animation" : ""
-        }`}
-      >
-        <Image width={1360} height={450} path={IMAGE[rightIndex]} />
+      <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-2 pb-4">
+        {[1, 2, 3, 4].map((dot) => (
+          <button
+            key={dot}
+            className={`w-3 h-3 rounded-full ${
+              dot === 1 ? "bg-white" : "bg-white/50"
+            }`}
+            aria-label={`Slide ${dot}`}
+          />
+        ))}
       </div>
     </div>
   );

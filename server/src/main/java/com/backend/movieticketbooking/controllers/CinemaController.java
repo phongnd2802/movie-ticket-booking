@@ -5,6 +5,7 @@ import com.backend.movieticketbooking.common.ApiResponse;
 import com.backend.movieticketbooking.dtos.cinema.CinemaDTO;
 import com.backend.movieticketbooking.dtos.cinema.CinemaHallDTO;
 import com.backend.movieticketbooking.dtos.cinema.request.CreateCinemaHallRequest;
+import com.backend.movieticketbooking.dtos.cinema.response.CreateCinemaHallResponse;
 import com.backend.movieticketbooking.services.cinema.CinemaService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/cinema")
+@RequestMapping("/admin/cinema")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CinemaController {
@@ -33,7 +34,7 @@ public class CinemaController {
 
     @PostMapping("/hall")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<CinemaHallDTO> addCinemaHall(@RequestBody CreateCinemaHallRequest request) {
+    public ApiResponse<CreateCinemaHallResponse> addCinemaHall(@RequestBody CreateCinemaHallRequest request) {
         return ApiResponse.success(cinemaService.createHall(request));
     }
 }

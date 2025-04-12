@@ -78,6 +78,7 @@ public class DatabaseInitializer {
     }
 
     static final int BATCH_SIZE = 1000;
+
    @PostConstruct
     @Transactional
     public void initAddressData() {
