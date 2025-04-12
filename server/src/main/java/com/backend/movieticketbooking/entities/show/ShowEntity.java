@@ -29,6 +29,8 @@ public class ShowEntity extends BaseEntity {
 
     LocalDateTime showEndTime;
 
+    int cinemaSeatsNumberAvailable;
+
     @ManyToMany(mappedBy = "shows")
     List<CouponEntity> coupons;
 

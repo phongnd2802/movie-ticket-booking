@@ -22,8 +22,6 @@ public class CinemaHallEntity extends BaseEntity {
 
     String cinemaHallName;
 
-    int cinemaSeatsNumberAvailable;
-
     @ManyToOne
     @JoinColumn(name = "cinema_id", nullable = false)
     CinemaEntity cinema;

@@ -1,4 +1,4 @@
-package com.backend.movieticketbooking.controllers;
+package com.backend.movieticketbooking.controllers.admin;
 
 
 import com.backend.movieticketbooking.common.ApiResponse;

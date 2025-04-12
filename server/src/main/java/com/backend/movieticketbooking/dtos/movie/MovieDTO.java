@@ -44,6 +44,4 @@ public class MovieDTO {
     private List<ActorDTO> actors;
 
     private List<GenreDTO> genres;
-
-    private List<ShowDTO> shows;
 }

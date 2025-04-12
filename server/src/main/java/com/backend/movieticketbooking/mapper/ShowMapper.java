@@ -11,5 +11,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ShowMapper {
     ShowDTO toShowDTO(ShowEntity show);
+    List<ShowDTO> toShowDTOs(List<ShowEntity> shows);
     CreateShowResponse toCreateShowResponse(ShowEntity show);
 }
