@@ -23,11 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -62,59 +64,66 @@ public class KafkaConsumer {
         }
     }
 
+    @Transactional
     @KafkaListener(topics = "booking.seat.held", groupId = "booking-group")
     public void listenSeatHeld(String message, Acknowledgment ack) {
         try {
+            // 1. Parse message
             SeatHeldEvent event = objectMapper.readValue(message, SeatHeldEvent.class);
             log.info("Received SeatHeldEvent: {}", event);
+
+            // 2. Lấy cached show và cập nhật trạng thái chỗ ngồi
             GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(event.getShowId()), GetShowResponse.class);
-            event.getHeldSeats().forEach(seat -> {
-                showCached.getSeats().forEach(seatCache -> {
-                    if (seat == seatCache.getShowSeatId()) {
-                        seatCache.setSeatState(SeatStateEnum.HELD);
+            event.getHeldSeats().forEach(heldSeatId -> {
+                showCached.getSeats().forEach(seat -> {
+                    if (heldSeatId.equals(seat.getShowSeatId())) {
+                        seat.setSeatState(SeatStateEnum.HELD);
                     }
                 });
             });
 
             distributedCacheService.setObjectTTL(getShowSeatKey(event.getShowId()), showCached, 5L, TimeUnit.MINUTES);
-            log.info("Update showCached: {}", event.getShowId());
+            log.info("Updated cached show for showId={}", event.getShowId());
 
 
+            // 3. Lấy thông tin người dùng
             Optional<UserEntity> userEntity = userRepository.findByUserEmail(event.getUserEmail());
             UserEntity user = userEntity.get();
 
+            // 4. Lấy các ShowSeatEntity và tính tổng giá
             List<ShowSeatEntity> seatsToUpdate = event.getHeldSeats().stream()
                     .map(showSeatRepository::findById)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .peek(seat -> seat.setSeatState(SeatStateEnum.HELD))
-                    .toList();
+                    .collect(Collectors.toList());
 
             int totalPrice = seatsToUpdate.stream()
                     .mapToInt(ShowSeatEntity::getSeatPrice)
                     .sum();
 
+            // 5. Tạo booking entity
             BookingEntity bookingEntity = BookingEntity.builder()
                     .bookingId(event.getBookingId())
-                    .bookingNumberOfSeats(event.getHeldSeats().size())
+                    .bookingNumberOfSeats(seatsToUpdate.size())
                     .bookingState(BookingStateEnum.PENDING)
                     .bookingTotalPrice(BigDecimal.valueOf(totalPrice))
-                    .show(ShowEntity.builder()
-                            .showId(event.getShowId())
-                            .build())
+                    .show(ShowEntity.builder().showId(event.getShowId()).build())
                     .user(user)
                     .build();
 
-            bookingRepository.save(bookingEntity);
+            bookingRepository.saveAndFlush(bookingEntity);
 
+            // 6. Gán booking và cập nhật trạng thái ghế
             seatsToUpdate.forEach(seat -> {
+                seat.setSeatState(SeatStateEnum.HELD);
                 seat.setBooking(bookingEntity);
             });
             showSeatRepository.saveAll(seatsToUpdate);
 
-            log.info("Update booking: {}", event.getBookingId());
-            ack.acknowledge();
+            log.info("Booking created and seats updated for bookingId={}", event.getBookingId());
+            ack.acknowledge(); // 7. Commit offset
         } catch (Exception e) {
+            log.error("Failed to process SeatHeldEvent", e);
             throw new RuntimeException(e);
         }
     }

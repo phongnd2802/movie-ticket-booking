@@ -3,6 +3,8 @@ package com.backend.movieticketbooking.services.booking.impl;
 import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.dtos.booking.request.SelectSeatsRequest;
 import com.backend.movieticketbooking.dtos.booking.response.SelectSeatsResponse;
+import com.backend.movieticketbooking.dtos.show.response.GetShowResponse;
+import com.backend.movieticketbooking.enums.SeatStateEnum;
 import com.backend.movieticketbooking.exceptions.BadRequestException;
 import com.backend.movieticketbooking.services.booking.BookingService;
 import com.backend.movieticketbooking.services.booking.event.SeatHeldEvent;
@@ -59,19 +61,20 @@ public class BookingServiceImpl implements BookingService {
                     failedToHold.add(seat);
                     break;
                 }
+
                 lockedKeys.add(key);
+
+                GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(request.getShowId()), GetShowResponse.class);
+                showCached.getSeats().forEach(seatCache -> {
+                    if(seat.equals(seatCache.getShowSeatId()) && seatCache.getSeatState() == SeatStateEnum.HELD) {
+                        failedToHold.add(seat);
+                        throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
+                    }
+                });
                 heldSuccessfully.add(seat);
             }
 
             if (!failedToHold.isEmpty()) {
-                // release all previously held locks
-                for (String lockedKey : lockedKeys) {
-                    DistributedLocker locker = distributedLockService.getDistributedLock(lockedKey);
-                    if (locker.isHeldByCurrentThread()) {
-                        locker.unlock();
-                    }
-                }
-
                 throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
             }
 
@@ -92,6 +95,12 @@ public class BookingServiceImpl implements BookingService {
                     .heldSuccessfully(heldSuccessfully)
                     .build();
         } catch (BadRequestException e) {
+            for (String lockedKey : lockedKeys) {
+                DistributedLocker locker = distributedLockService.getDistributedLock(lockedKey);
+                if (locker.isHeldByCurrentThread()) {
+                    locker.unlock();
+                }
+            }
             throw e;
         } catch (Exception e) {
             for (String lockedKey : lockedKeys) {
@@ -100,11 +109,16 @@ public class BookingServiceImpl implements BookingService {
                     locker.unlock();
                 }
             }
+            log.error(e.getMessage());
             throw new RuntimeException("Error while selecting seats", e);
         }
     }
 
     private String getHoldSeatBookingKey(int showSeatId) {
         return "BOOKING:HOLD:SEAT:" + showSeatId;
+    }
+
+    private String getShowSeatKey(int showId) {
+        return "show:" + showId;
     }
 }
