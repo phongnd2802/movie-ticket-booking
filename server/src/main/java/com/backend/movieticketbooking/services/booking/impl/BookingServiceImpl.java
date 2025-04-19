@@ -10,7 +10,6 @@ import com.backend.movieticketbooking.services.booking.BookingService;
 import com.backend.movieticketbooking.services.booking.event.SeatHeldEvent;
 import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
 import com.backend.movieticketbooking.services.kafka.KafkaProducer;
-import com.backend.movieticketbooking.services.kafka.message.OtpMessage;
 import com.backend.movieticketbooking.services.lock.DistributedLockService;
 import com.backend.movieticketbooking.services.lock.DistributedLocker;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -44,42 +44,38 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public SelectSeatsResponse selectSeats(SelectSeatsRequest request, String userEmail) {
-        List<Integer> seats = request.getSeats();
-        log.info(seats.toString());
-        log.info(userEmail);
+        // Sort seat IDs to prevent deadlocks
+        List<Integer> seats = request.getSeats().stream().sorted().toList();
+        log.info("Selecting seats: {}", seats);
+        log.info("User email: {}", userEmail);
 
         List<String> lockedKeys = new ArrayList<>();
         List<Integer> heldSuccessfully = new ArrayList<>();
-        List<Integer> failedToHold = new ArrayList<>();
 
         try {
+            // 1. Lock all seats first
             for (Integer seat : seats) {
                 String key = getHoldSeatBookingKey(seat);
                 DistributedLocker locker = distributedLockService.getDistributedLock(key);
-                boolean locked = locker.tryLock(0, 10, TimeUnit.MINUTES);
+                boolean locked = locker.tryLock(500, 2000, TimeUnit.MILLISECONDS); // small timeout
                 if (!locked) {
-                    failedToHold.add(seat);
-                    break;
+                    throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
                 }
-
                 lockedKeys.add(key);
+            }
 
-                GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(request.getShowId()), GetShowResponse.class);
-                showCached.getSeats().forEach(seatCache -> {
-                    if(seat.equals(seatCache.getShowSeatId()) && seatCache.getSeatState() == SeatStateEnum.HELD) {
-                        failedToHold.add(seat);
-                        throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
-                    }
-                });
+            // 2. After locking all seats, check if any seat is already held
+            GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(request.getShowId()), GetShowResponse.class);
+            for (Integer seat : seats) {
+                boolean isHeld = showCached.getSeats().stream()
+                        .anyMatch(seatCache -> seat.equals(seatCache.getShowSeatId()) && seatCache.getSeatState() == SeatStateEnum.HELD);
+                if (isHeld) {
+                    throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
+                }
                 heldSuccessfully.add(seat);
             }
 
-            if (!failedToHold.isEmpty()) {
-                throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
-            }
-
-
-            // Send event to kafka
+            // 3. All seats can be held → Send event to Kafka
             String bookingId = UUID.randomUUID().toString();
             SeatHeldEvent seatHeldEvent = SeatHeldEvent.builder()
                     .showId(request.getShowId())
@@ -89,28 +85,27 @@ public class BookingServiceImpl implements BookingService {
                     .build();
             String messageJson = objectMapper.writeValueAsString(seatHeldEvent);
             kafkaProducer.sendAsync("booking.seat.held", messageJson);
+
             return SelectSeatsResponse.builder()
                     .bookingId(bookingId)
-                    .failedToHold(failedToHold)
+                    .failedToHold(Collections.emptyList())
                     .heldSuccessfully(heldSuccessfully)
                     .build();
+
         } catch (BadRequestException e) {
-            for (String lockedKey : lockedKeys) {
-                DistributedLocker locker = distributedLockService.getDistributedLock(lockedKey);
-                if (locker.isHeldByCurrentThread()) {
-                    locker.unlock();
-                }
-            }
+            log.warn("Seat hold failed: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage(), e);
+            throw new RuntimeException("Error while selecting seats", e);
+        } finally {
+            // 4. Always unlock in finally block
             for (String lockedKey : lockedKeys) {
                 DistributedLocker locker = distributedLockService.getDistributedLock(lockedKey);
                 if (locker.isHeldByCurrentThread()) {
                     locker.unlock();
                 }
             }
-            log.error(e.getMessage());
-            throw new RuntimeException("Error while selecting seats", e);
         }
     }
 
