@@ -1,6 +1,7 @@
 package com.backend.movieticketbooking.entities.booking;
 
 import com.backend.movieticketbooking.entities.BaseEntity;
+import com.backend.movieticketbooking.entities.auth.UserEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallSeatEntity;
 import com.backend.movieticketbooking.entities.other.FoodEntity;
@@ -21,9 +22,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class BookingEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "booking_id")
     String bookingId;
 
@@ -51,4 +52,8 @@ public class BookingEntity extends BaseEntity {
         inverseJoinColumns = @JoinColumn(name = "food_id")
     )
     List<FoodEntity> foods;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    UserEntity user;
 }
