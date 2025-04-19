@@ -16,7 +16,7 @@ import { User } from "lucide-react";
 import { formSchemaLogin } from "@/config/auth";
 import { reasonPhrases, statusCode } from "@/core";
 import { toast } from "sonner";
-import { successLogin } from "@/ui/toast";
+import { successLogin, failLogin } from "@/ui/toast";
 function LoginForm() {
   const router = useRouter();
   const form = useForm({
@@ -28,27 +28,37 @@ function LoginForm() {
   });
 
   useEffect(() => {
-    const isLogined = getCookie("at");
-    if (isLogined) {
-      router.push("/");
-    }
+    const checkToken = async () => {
+      async () => {
+        const isLogined = await getCookie("at");
+        if (isLogined) {
+          router.push("/");
+        }
+      };
+    };
+    checkToken();
   }, [router]);
 
   const onSubmit = async (values) => {
     const response = await handleLogin(login, values);
-    if (response.code === statusCode.SUCCESS) {
+    console.log("response", response);
+    if (response.code === statusCode.OK) {
       handleToken(response.metadata);
+      localStorage.setItem("user", JSON.stringify(response.data.profile));
       toast.success("Đăng nhập thành công", successLogin);
       router.push("/");
     } else if (response.statuscode === statusCode.EMAIL_NOT_VERIFIED) {
       toast.info(response.message, successLogin);
+
+    } else if (response.code === statusCode.ERR_USER_NOT_VERIFY) {
+      toast.info(response.message, failLogin);
       const token = response.metadata.token;
       const ttl = response.metadata.ttl;
-      await setCookie("otp_token", token, ttl, `/verify-otp`);
+      await setCookie("otp_token", token, 60, `/verify-otp`);
       router.push(`/verify-otp?token=${token}`);
-    } else if (response.statuscode === statusCode.ERR_USER_NOT_FOUND) {
-      toast.error(response.message, successLogin);
-    } else if (response.statuscode === statusCode.ERR_INVALID_PASSWORD) {
+    } else if (response.code === statusCode.IP_ADDRESS_EMPTY) {
+      toast.error(response.message, failLogin);
+    } else if (response.code === statusCode.ERR_INVALID_PASSWORD) {
       toast.error(response.message, successLogin);
     }
   };

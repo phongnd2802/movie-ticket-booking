@@ -1,50 +1,70 @@
 "use client";
-import { useState } from "react";
-function SubNav({ title, nav1, nav2 }) {
-  const [isActiveShowing, setIsActiveShowing] = useState(false);
-  const [isActiveWillShow, setIsActiveWillShow] = useState(false);
 
-  const handleclick = (movie, showing, willShow) => {
-    setIsActiveShowing(showing);
-    setIsActiveWillShow(willShow);
+import { useState } from "react";
+
+export default function SubNav({
+  title,
+  nav1,
+  nav2,
+  className,
+  defaultActive = null,
+  onNavChange,
+}) {
+  const [activeNav, setActiveNav] = useState(defaultActive);
+
+  const handleNavClick = (nav) => {
+    setActiveNav(nav);
+    if (onNavChange) {
+      onNavChange(nav);
+    }
   };
 
   return (
-    <div className="w-full max-w-[80%] flex flex-row gap-10 font-bold text-black-10 text-[20px] ">
-      <div>
-        <span className="border-l-4 border-solid border-[#034ea2] mr-2" />
+    <nav
+      className={`w-full flex flex-wrap gap-4 md:gap-10 font-bold text-[#4a4a4a] text-lg md:text-xl ${
+        className || ""
+      }`}
+      aria-label={title}
+    >
+      <div className="flex items-center">
         <span
-          className={`hover:text-blue-10 hover:cursor-pointer hover:text-blue-900 transition-all duration-300  ease-in-out cursor-pointer opacity-50`}
-        >
+          className="border-l-4 border-solid border-[#034ea2] mr-2 h-6"
+          aria-hidden="true"
+        />
+        <span className="opacity-50 hover:text-blue-900 transition-all duration-300 cursor-pointer">
           {title}
         </span>
       </div>
-      <span
-        className={` hover:cursor-pointer hover:text-blue-900 ${
-          isActiveShowing === false ? "opacity-50" : ""
-        } ${
-          isActiveShowing
-            ? "text-[#041ECB] after:content-[''] after:block after:w-1/2 after:h-[3px] after:bg-[#041ECB] after:mt-1 after:mx-auto transition-all duration-300  ease-in-out cursor-pointer"
-            : ""
-        }`}
-        onClick={() => handleclick(false, true, false)}
+
+      <button
+        className={`hover:text-blue-900 transition-all duration-300 cursor-pointer relative
+                  ${activeNav === "nav1" ? "text-[#041ECB]" : "opacity-50"}`}
+        onClick={() => handleNavClick("nav1")}
+        aria-pressed={activeNav === "nav1"}
       >
         {nav1}
-      </span>
-      <span
-        className={` hover:cursor-pointer hover:text-blue-900 ${
-          isActiveWillShow === false ? "opacity-50" : ""
-        } ${
-          isActiveWillShow
-            ? "text-[#0D4DA2] after:content-[''] after:block after:w-1/2 after:h-[3px] after:bg-[#041ECB] after:mt-1 after:mx-auto transition-all duration-300  ease-in-out cursor-pointer"
-            : ""
-        } `}
-        onClick={() => handleclick(false, false, true)}
+        {activeNav === "nav1" && (
+          <span
+            className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#041ECB] mt-1"
+            aria-hidden="true"
+          />
+        )}
+      </button>
+
+      <button
+        className={`hover:text-blue-900 transition-all duration-300 cursor-pointer relative
+                  ${activeNav === "nav2" ? "text-[#0D4DA2]" : "opacity-50"}`}
+        onClick={() => handleNavClick("nav2")}
+        aria-pressed={activeNav === "nav2"}
       >
         {nav2}
-      </span>
-    </div>
+        {activeNav === "nav2" && (
+          <span
+            className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#041ECB] mt-1"
+            aria-hidden="true"
+          />
+        )}
+      </button>
+    </nav>
   );
 }
-
-export default SubNav;

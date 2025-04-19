@@ -2,21 +2,28 @@ import { useState, useEffect } from "react";
 import { getCookie } from "@/lib/cookie";
 import { fetchTtl } from "@/lib/auth/verifyOtp";
 import { verifyOtp } from "@/endpoint/auth";
+import { useRouter } from "next/navigation";
 
 export function useOtp() {
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [ttl, setTtl] = useState(0);
-  const [email, setEmail] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
-      const _data = await fetchTtl(verifyOtp);
-      if (_data) {
-        setTtl(_data.ttl);
-        setEmail(_data.email);
+    const checkbox = async () => {
+      const OTP_TOKEN = "otp_token";
+      const token = await getCookie(OTP_TOKEN);
+      if (!token) {
+        router.push("/");
+      } else {
+        const _data = await fetchTtl(verifyOtp);
+        if (_data) {
+          setTtl(_data);
+        }
       }
     };
-    fetchData();
+
+    checkbox();
   }, []);
 
   useEffect(() => {
@@ -61,5 +68,5 @@ export function useOtp() {
       alert("Có lỗi khi gửi lại OTP");
     }
   };
-  return { otp, ttl, email, handleOtpChange, resendOtp };
+  return { otp, ttl, handleOtpChange, resendOtp };
 }
