@@ -36,11 +36,11 @@ function LoginForm() {
 
   const onSubmit = async (values) => {
     const response = await handleLogin(login, values);
-    if (response.statuscode === statusCode.OK) {
+    if (response.code === statusCode.SUCCESS) {
       handleToken(response.metadata);
       toast.success("Đăng nhập thành công", successLogin);
       router.push("/");
-    } else if (response.statuscode === statusCode.ERR_USER_NOT_VERIFY) {
+    } else if (response.statuscode === statusCode.EMAIL_NOT_VERIFIED) {
       toast.info(response.message, successLogin);
       const token = response.metadata.token;
       const ttl = response.metadata.ttl;

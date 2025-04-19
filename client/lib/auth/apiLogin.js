@@ -16,12 +16,10 @@ const handleLogin = async (endpoint, values) => {
 };
 
 const handleToken = (data) => {
-  const userId = data.user.usr_id;
-  const accessToken = data.token.accessToken;
-  const refreshToken = data.token.refeshToken;
-  setCookie("at", accessToken, 2 * 60, "/");
+  const accessToken = data.accessToken;
+  const refreshToken = data.refreshToken;
+  setCookie("at", accessToken, 15 * 60, "/");
   setCookie("rt", refreshToken, 7 * 24 * 60 * 60, "/");
-  setCookie("userId", userId, 7 * 24 * 60 * 60, "/");
 };
 
 export { handleLogin, handleToken };
