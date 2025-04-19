@@ -41,8 +41,10 @@ function LoginForm() {
 
   const onSubmit = async (values) => {
     const response = await handleLogin(login, values);
+    console.log("response", response);
     if (response.code === statusCode.OK) {
       handleToken(response.metadata);
+      localStorage.setItem("user", JSON.stringify(response.data.profile));
       toast.success("Đăng nhập thành công", successLogin);
       router.push("/");
     } else if (response.code === statusCode.ERR_USER_NOT_VERIFY) {

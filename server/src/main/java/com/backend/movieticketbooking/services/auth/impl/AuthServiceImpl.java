@@ -109,6 +109,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public LoginResponse login(LoginRequest request) {
         Optional<UserEntity> userEntity = userRepository.findByUserEmail(request.getEmail());
+        System.out.println("userEntity: " + userEntity);
         if (userEntity.isEmpty()) {
             throw new BadRequestException(ErrorCode.AUTHENTICATION_FAILED);
         }

@@ -7,7 +7,6 @@ const handleLogin = async (endpoint, values) => {
         "Content-type": "application/json",
       },
     });
-    console.log("Response: ", response);
     return response.data;
   } catch (error) {
     console.error("Có lỗi xảy ra: ", error);
