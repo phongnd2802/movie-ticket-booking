@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Slf4j
 public class UserPrinciple implements UserDetails {
-
     private String username;
 
     @JsonIgnore

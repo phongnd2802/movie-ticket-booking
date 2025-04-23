@@ -49,6 +49,9 @@ function LoginForm() {
       handleToken(response.metadata);
       toast.success("Đăng nhập thành công", successLogin);
       router.push("/");
+    } else if (response.statuscode === statusCode.EMAIL_NOT_VERIFIED) {
+      toast.info(response.message, successLogin);
+
     } else if (response.code === statusCode.ERR_USER_NOT_VERIFY) {
       toast.info("Tài khoản chưa được xác minh", failLogin);
     } else {
