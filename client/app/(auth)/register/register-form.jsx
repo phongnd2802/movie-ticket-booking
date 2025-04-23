@@ -24,7 +24,7 @@ import { setCookie } from "@/lib/cookie";
 import { reasonPhrases, statusCode } from "@/core";
 import { formSchemaSignUp } from "@/config/auth";
 import { toast } from "sonner";
-import { successLogin } from "@/ui/toast";
+import { successLogin, failLogin } from "@/ui/toast";
 
 function RegisterForm() {
   const router = useRouter();
@@ -43,19 +43,19 @@ function RegisterForm() {
   const onSubmit = async (values) => {
     const data = JSON.stringify(values);
     const response = await handleSignUp({ endpoint: signUp, data });
-    if (response.code === 20000) {
+    if (response.code === statusCode.OK) {
       const token = response.metadata.token;
       const email = response.metadata.email;
-      await setCookie("otp_token", token, 60, `/verify-otp`);
+      toast.success(
+        "Vui lòng kiểm tra email để nhận otp của bạn",
+        successLogin
+      );
+      setCookie("otp_token", token, 60);
       router.push(`/verify-otp?token=${token}&email=${email}`);
-    } else if (response.code === statusCode.ERR_USER_NOT_VERIFY) {
-      toast.info(response.message, successLogin);
-      const token = response.metadata.token;
-      const ttl = response.metadata.ttl;
-      await setCookie("otp_token", token, 60, `/verify-otp`);
-      router.push(`/verify-otp?token=${token}`);
+    } else if (response.code === statusCode.ERR_USER_EXISTED) {
+      toast.info("Email này đã được đăng kí", failLogin);
     } else {
-      toast.error(response.message, successLogin);
+      toast.error("Đã xảy ra lỗi", failLogin);
     }
   };
 

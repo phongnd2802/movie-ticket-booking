@@ -7,7 +7,10 @@ const handleLogin = async (endpoint, values) => {
         "Content-type": "application/json",
       },
     });
-    return response.data;
+    if (response.status === 200) {
+      const data = await response.data;
+      return data;
+    }
   } catch (error) {
     console.error("Có lỗi xảy ra: ", error);
     return error.response;
@@ -15,12 +18,13 @@ const handleLogin = async (endpoint, values) => {
 };
 
 const handleToken = (data) => {
-  const userId = data.user.usr_id;
-  const accessToken = data.token.accessToken;
-  const refreshToken = data.token.refeshToken;
+  const user = data.profile;
+  const accessToken = data.accessToken;
+  const refreshToken = data.refreshToken;
   setCookie("at", accessToken, 2 * 60, "/");
   setCookie("rt", refreshToken, 7 * 24 * 60 * 60, "/");
-  setCookie("userId", userId, 7 * 24 * 60 * 60, "/");
+  setCookie("user", JSON.stringify(user), 7 * 24 * 60 * 60, "/"); // quên mất để làm gì rồi
+  localStorage.setItem("user", JSON.stringify(user));
 };
 
 export { handleLogin, handleToken };

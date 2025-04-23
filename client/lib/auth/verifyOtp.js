@@ -4,10 +4,9 @@ const fetchTtl = async (endpoint) => {
   try {
     const OTP_TOKEN = "otp_token";
     const token = getCookie(OTP_TOKEN);
-    const response = await axios.get(endpoint, {
+    const response = await axios.get(`${endpoint}?token=${token}`, {
       headers: {
         "Content-Type": "application/json",
-        OTP_TOKEN: token,
       },
     });
     if (response.status === 200) {
@@ -33,11 +32,10 @@ const handleVerifyOtp = async (otp, email, endpoint) => {
     const token = getCookie(OTP_TOKEN);
     const response = await axios.post(
       endpoint,
-      { email: email, otp: otpCode },
+      { email: email, token, otp: otpCode },
       {
         headers: {
           "Content-Type": "application/json",
-          OTP_TOKEN: token,
         },
       }
     );
