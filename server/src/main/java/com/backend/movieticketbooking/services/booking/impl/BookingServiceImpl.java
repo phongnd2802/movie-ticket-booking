@@ -3,8 +3,6 @@ package com.backend.movieticketbooking.services.booking.impl;
 import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.dtos.booking.request.SelectSeatsRequest;
 import com.backend.movieticketbooking.dtos.booking.response.SelectSeatsResponse;
-import com.backend.movieticketbooking.dtos.show.response.GetShowResponse;
-import com.backend.movieticketbooking.enums.SeatStateEnum;
 import com.backend.movieticketbooking.exceptions.BadRequestException;
 import com.backend.movieticketbooking.services.booking.BookingService;
 import com.backend.movieticketbooking.services.booking.event.SeatHeldEvent;
@@ -53,30 +51,34 @@ public class BookingServiceImpl implements BookingService {
         List<Integer> heldSuccessfully = new ArrayList<>();
 
         try {
-            // 1. Lock all seats first
+            // Lock all seats
             for (Integer seat : seats) {
                 String key = getHoldSeatBookingKey(seat);
                 DistributedLocker locker = distributedLockService.getDistributedLock(key);
-                boolean locked = locker.tryLock(500, 2000, TimeUnit.MILLISECONDS); // small timeout
+                boolean locked = locker.tryLock(500, 5000, TimeUnit.MILLISECONDS); // small timeout
                 if (!locked) {
                     throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
                 }
                 lockedKeys.add(key);
             }
 
-            // 2. After locking all seats, check if any seat is already held
-            GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(request.getShowId()), GetShowResponse.class);
+            // Check if any seat is already held in Redis
             for (Integer seat : seats) {
-                boolean isHeld = showCached.getSeats().stream()
-                        .anyMatch(seatCache -> seat.equals(seatCache.getShowSeatId()) && seatCache.getSeatState() == SeatStateEnum.HELD);
-                if (isHeld) {
+                String redisKey = getSeatHoldKey(seat);
+                if (distributedCacheService.exists(redisKey)) {
                     throw new BadRequestException(ErrorCode.SEAT_IS_HELD);
                 }
                 heldSuccessfully.add(seat);
             }
 
-            // 3. All seats can be held → Send event to Kafka
+            // All seats are free → Mark them as HELD in Redis with TTL
             String bookingId = UUID.randomUUID().toString();
+            for (Integer seat : heldSuccessfully) {
+                String redisKey = getSeatHoldKey(seat);
+                distributedCacheService.setStringTTL(redisKey, bookingId + ":" + userEmail, 10, TimeUnit.MINUTES); // TTL 10 phút
+            }
+
+            // Send Kafka event
             SeatHeldEvent seatHeldEvent = SeatHeldEvent.builder()
                     .showId(request.getShowId())
                     .bookingId(bookingId)
@@ -84,7 +86,7 @@ public class BookingServiceImpl implements BookingService {
                     .heldSeats(heldSuccessfully)
                     .build();
             String messageJson = objectMapper.writeValueAsString(seatHeldEvent);
-            kafkaProducer.sendAsync("booking.seat.held", messageJson);
+            kafkaProducer.sendAsync("booking-seat-held", messageJson);
 
             return SelectSeatsResponse.builder()
                     .bookingId(bookingId)
@@ -99,7 +101,7 @@ public class BookingServiceImpl implements BookingService {
             log.error("Unexpected error: {}", e.getMessage(), e);
             throw new RuntimeException("Error while selecting seats", e);
         } finally {
-            // 4. Always unlock in finally block
+            //  Always unlock in finally block
             for (String lockedKey : lockedKeys) {
                 DistributedLocker locker = distributedLockService.getDistributedLock(lockedKey);
                 if (locker.isHeldByCurrentThread()) {
@@ -110,7 +112,11 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private String getHoldSeatBookingKey(int showSeatId) {
-        return "BOOKING:HOLD:SEAT:" + showSeatId;
+        return "LOCK:HOLD:SEAT:" + showSeatId;
+    }
+
+    private String getSeatHoldKey(Integer showSeatId) {
+        return "seat:hold:" + showSeatId;
     }
 
     private String getShowSeatKey(int showId) {

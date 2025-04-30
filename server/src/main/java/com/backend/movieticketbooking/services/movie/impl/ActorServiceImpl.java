@@ -11,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -20,15 +22,18 @@ import java.time.LocalDate;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ActorServiceImpl implements ActorService {
 
+    @Autowired
     ActorRepository actorRepository;
 
+    @Autowired
+    @Qualifier("cloudinaryStorage")
     StorageService storageService;
 
 
+    @Autowired
     ActorMapper actorMapper;
 
     static final String ACTOR_BUCKET = "actors";

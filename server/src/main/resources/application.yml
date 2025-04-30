@@ -101,8 +101,8 @@ management:
 
 minio:
   endpoint: http://127.0.0.1:9000
-  access-key: lxlnUFYE5z9YPHffLgoy
-  secret-key: cpwevTb0hinY5Y2x5dcVPQuFAQb6OVZkzhIbHPnw
+  access-key: I95Zb3AlmeZ7eCrAZDRO
+  secret-key: q4jEnloTxNB4DCHKyHJstQu42s6NQEByShRgg9Ja
 
 jwt:
   secret: A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2
@@ -110,3 +110,6 @@ jwt:
     expiration: 900000
   refresh:
     expiration: 604800000
+
+
+CLOUDINARY_URL: cloudinary://886288871363321:DW04Qizn2aaQmHjwT_ypIfkHRfk@dwwrqkjnu

@@ -44,6 +44,7 @@ public enum ErrorCode {
     SHOW_IS_PLAYING_OR_IS_FINISHED(40033, "Show is playing or is finished"),
 
     SEAT_IS_HELD(40034, "Seat is held"),
+    BOOKING_NOT_FOUND(40035, "Booking not found"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;

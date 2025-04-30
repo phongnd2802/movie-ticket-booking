@@ -65,25 +65,12 @@ public class KafkaConsumer {
     }
 
     @Transactional
-    @KafkaListener(topics = "booking.seat.held", groupId = "booking-group")
+    @KafkaListener(topics = "booking-seat-held", groupId = "booking-group")
     public void listenSeatHeld(String message, Acknowledgment ack) {
         try {
             // 1. Parse message
             SeatHeldEvent event = objectMapper.readValue(message, SeatHeldEvent.class);
             log.info("Received SeatHeldEvent: {}", event);
-
-            // 2. Lấy cached show và cập nhật trạng thái chỗ ngồi
-            GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(event.getShowId()), GetShowResponse.class);
-            event.getHeldSeats().forEach(heldSeatId -> {
-                showCached.getSeats().forEach(seat -> {
-                    if (heldSeatId.equals(seat.getShowSeatId())) {
-                        seat.setSeatState(SeatStateEnum.HELD);
-                    }
-                });
-            });
-
-            distributedCacheService.setObjectTTL(getShowSeatKey(event.getShowId()), showCached, 5L, TimeUnit.MINUTES);
-            log.info("Updated cached show for showId={}", event.getShowId());
 
 
             // 3. Lấy thông tin người dùng
@@ -121,6 +108,20 @@ public class KafkaConsumer {
             showSeatRepository.saveAll(seatsToUpdate);
 
             log.info("Booking created and seats updated for bookingId={}", event.getBookingId());
+
+            GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(event.getShowId()), GetShowResponse.class);
+            if (showCached != null) {
+                event.getHeldSeats().forEach(heldSeatId -> {
+                    showCached.getSeats().forEach(seat -> {
+                        if (heldSeatId.equals(seat.getShowSeatId())) {
+                            seat.setSeatState(SeatStateEnum.HELD);
+                        }
+                    });
+                });
+
+                distributedCacheService.setObjectTTL(getShowSeatKey(event.getShowId()), showCached, 5L, TimeUnit.MINUTES);
+                log.info("Updated cached show for showId={}", event.getShowId());
+            }
             ack.acknowledge(); // 7. Commit offset
         } catch (Exception e) {
             log.error("Failed to process SeatHeldEvent", e);
