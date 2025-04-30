@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getCookie } from "@/lib/cookie";
 import { fetchTtl } from "@/lib/auth/verifyOtp";
-import { verifyOtp } from "@/endpoint/auth";
+import { getTtl } from "@/endpoint/auth";
 import { useRouter } from "next/navigation";
 
 export function useOtp() {
@@ -12,11 +12,11 @@ export function useOtp() {
   useEffect(() => {
     const checkbox = async () => {
       const OTP_TOKEN = "otp_token";
-      const token = await getCookie(OTP_TOKEN);
+      const token = getCookie(OTP_TOKEN);
       if (!token) {
         router.push("/");
       } else {
-        const _data = await fetchTtl(verifyOtp);
+        const _data = await fetchTtl(getTtl);
         if (_data) {
           setTtl(_data);
         }

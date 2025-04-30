@@ -1,14 +1,14 @@
-async function setCookie(name, value, time, path) {
+function setCookie(name, value, time, path = "/") {
   const d = new Date();
   d.setTime(d.getTime() + time * 1000);
-  const expires = "expires = " + d.toUTCString();
-  document.cookie = name + " = " + value + "; " + expires + "; path= " + path;
+  const expires = "expires=" + d.toUTCString();
+  document.cookie = `${name}=${value}; ${expires}; path=${path}`;
 }
 
 async function deleteCookie(name, path) {
   const d = new Date();
   d.setTime(d.getTime() - 1);
-  const expires = "expires = " + d.toUTCString();
+  const expires = "expires= " + d.toUTCString();
   document.cookie = name + "=; " + expires + "; path=" + path;
 }
 

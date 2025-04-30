@@ -32,7 +32,6 @@ export default function Movie({
           className="rounded-md transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Overlay with action buttons */}
         {(trailer || ticket) && (
           <div
             className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center gap-4

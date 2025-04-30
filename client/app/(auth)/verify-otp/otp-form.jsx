@@ -18,6 +18,8 @@ import Countdown from "@/components/page/countDown";
 import InputOTP from "@/components/page/inputOtp";
 import { useOtp } from "@/hooks/useOtp";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { successLogin } from "@/ui/toast";
 
 function FormOtpSubmit() {
   const router = useRouter();
@@ -33,8 +35,8 @@ function FormOtpSubmit() {
   const onSubmit = async () => {
     const _data = await handleVerifyOtp(otp, email, submitVerify);
     if (_data) {
-      alert("OTP xác thực thành công");
-      await deleteCookie("otp_token", "/verify-otp");
+      toast("OTP xác thực thành công", successLogin);
+      deleteCookie("otp_token", "/verify-otp");
       router.push("/login");
     } else {
       alert("OTP không hợp lệ");

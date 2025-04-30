@@ -1,3 +1,4 @@
+"use client";
 import ListMovie from "@/components/page/listMovie";
 import Slide from "@/components/page/slide";
 import Header from "@/components/page/header";
@@ -5,7 +6,7 @@ import SubNav from "@/components/page/subNav";
 import Movie from "@/components/page/movie";
 import Footer from "@/components/page/footer";
 import Section from "@/components/page/section";
-
+import { useMovie } from "@/hooks/useMovie";
 const sampleMovies = [
   {
     id: "1",
@@ -74,30 +75,24 @@ const sampleMovies = [
 ];
 
 export default function HomePage() {
+  const { movies } = useMovie();
   return (
     <div className="flex flex-col items-center gap-16">
-      {/* Header and Main Content */}
       <div className="w-full">
         <Header />
         <div className="flex flex-col gap-12 items-center">
           <Slide />
-
           <Section>
-            {/* Movie Navigation */}
             <SubNav title="PHIM" nav1="Đang chiếu" nav2="Sắp chiếu" />
-
-            {/* Movie List */}
             <div className="w-full mt-4">
-              <ListMovie movies={sampleMovies} />
+              <ListMovie movies={movies || sampleMovies} />
             </div>
           </Section>
         </div>
       </div>
 
-      {/* Divider */}
       <div className="w-full h-0.5 bg-black/5" aria-hidden="true"></div>
 
-      {/* Reviews Section */}
       <Section id="reviews">
         <SubNav
           title="GÓC ĐIỆN ẢNH"

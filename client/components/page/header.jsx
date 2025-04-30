@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, AlignRight, UserRound, LogOut } from "lucide-react";
+import {
+  Search,
+  AlignRight,
+  UserRound,
+  LogOut,
+  CircleUser,
+} from "lucide-react";
 import { navItems } from "@/lib/data";
 import Navigation from "./navigation-menu";
 import Image from "./imagekit";
@@ -100,30 +106,43 @@ export default function Header() {
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
               <div className="text-[14px] font-medium text-textOrange">
-                {user?.name || "User"}
+                {user.avatar ? (
+                  <Image
+                    path={user.avatar}
+                    alt="avatar"
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                ) : (
+                  // <CircleUser size={24} className="rounded-full" />
+                  // Tạm thời
+                  <Image
+                    path={"page/ts.jpg?height=24&width=24"}
+                    alt="avatar"
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                )}
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1 hover:text-textOrange text-[14px]"
-              >
-                <LogOut size={14} />
-                Đăng xuất
-              </button>
+              <span>{user.name || "Hoàng Thị Mỹ Linh"}</span>
             </div>
           ) : (
-            <div className="hover:text-textOrange text-[14px]">
-              <Link href="/login">Đăng nhập</Link>
-            </div>
+            <>
+              <div className="hover:text-textOrange text-[14px]">
+                <Link href="/login">Đăng nhập</Link>
+              </div>
+              <div>
+                <Image
+                  path="page/join-member-Gstar.svg"
+                  alt="member"
+                  width={100}
+                  height={38.09}
+                />
+              </div>
+            </>
           )}
-
-          <div>
-            <Image
-              path="page/join-member-Gstar.svg"
-              alt="member"
-              width={100}
-              height={38.09}
-            />
-          </div>
         </div>
 
         {/* Mobile auth section */}
@@ -134,7 +153,7 @@ export default function Header() {
             </span>
             {isLoggedIn ? (
               <div className="flex items-center gap-2">
-                <div className="text-textOrange">{user?.name || "User"}</div>
+                <div className="text-textOrange">avatar</div>
                 <button
                   onClick={handleLogout}
                   className="hover:text-textOrange flex items-center gap-1"
@@ -144,14 +163,16 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              <div className="hover:text-textOrange">
-                <Link href="/login">Đăng nhập</Link>
-              </div>
+              <>
+                <div className="hover:text-textOrange">
+                  <Link href="/login">Đăng nhập</Link>
+                </div>
+                <span>
+                  <AlignRight size={24} />
+                </span>
+              </>
             )}
           </div>
-          <span>
-            <AlignRight size={24} />
-          </span>
         </div>
       </div>
     </header>

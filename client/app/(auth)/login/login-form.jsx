@@ -16,7 +16,7 @@ import { User } from "lucide-react";
 import { formSchemaLogin } from "@/config/auth";
 import { reasonPhrases, statusCode } from "@/core";
 import { toast } from "sonner";
-import { successLogin, failLogin } from "@/ui/toast";
+import { successLogin, failLogin, MovieErrorToast } from "@/ui/toast";
 function LoginForm() {
   const router = useRouter();
   const form = useForm({
@@ -28,9 +28,9 @@ function LoginForm() {
   });
 
   useEffect(() => {
-    const checkToken = async () => {
-      async () => {
-        const isLogined = await getCookie("at");
+    const checkToken = () => {
+      () => {
+        const isLogined = getCookie("at");
         if (isLogined) {
           router.push("/");
         }
@@ -41,25 +41,21 @@ function LoginForm() {
 
   const onSubmit = async (values) => {
     const response = await handleLogin(login, values);
-    console.log("response", response);
+    if (!response) {
+      toast.error("Đã xảy ra lỗi", failLogin);
+      return;
+    }
     if (response.code === statusCode.OK) {
       handleToken(response.metadata);
-      localStorage.setItem("user", JSON.stringify(response.data.profile));
       toast.success("Đăng nhập thành công", successLogin);
       router.push("/");
     } else if (response.statuscode === statusCode.EMAIL_NOT_VERIFIED) {
       toast.info(response.message, successLogin);
 
     } else if (response.code === statusCode.ERR_USER_NOT_VERIFY) {
-      toast.info(response.message, failLogin);
-      const token = response.metadata.token;
-      const ttl = response.metadata.ttl;
-      await setCookie("otp_token", token, 60, `/verify-otp`);
-      router.push(`/verify-otp?token=${token}`);
-    } else if (response.code === statusCode.IP_ADDRESS_EMPTY) {
-      toast.error(response.message, failLogin);
-    } else if (response.code === statusCode.ERR_INVALID_PASSWORD) {
-      toast.error(response.message, successLogin);
+      toast.info("Tài khoản chưa được xác minh", failLogin);
+    } else {
+      toast.info("Đã xảy ra lỗi", failLogin);
     }
   };
 

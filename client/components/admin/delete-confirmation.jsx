@@ -19,6 +19,7 @@ export function DeleteConfirmation({
   title,
   description,
 }) {
+  //wrapper 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
