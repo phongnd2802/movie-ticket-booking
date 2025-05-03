@@ -2,34 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Search,
-  AlignRight,
-  UserRound,
-  LogOut,
-  CircleUser,
-} from "lucide-react";
+import { Search, AlignRight, UserRound, LogOut } from "lucide-react";
 import { navItems } from "@/lib/data";
 import Navigation from "./navigation-menu";
-import Image from "./imagekit";
+import MyImage from "./imagekit";
+import Image from "next/image";
 
-export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+export default function Header({ isLogin }) {
   const [user, setUser] = useState(null);
-
   useEffect(() => {
-    const userFromStorage = localStorage.getItem("user");
-    if (userFromStorage) {
-      try {
-        const parsedUser = JSON.parse(userFromStorage);
-        setUser(parsedUser);
-        setIsLoggedIn(true);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
     }
   }, []);
-
   const handleLogout = () => {
     localStorage.removeItem("user");
     setUser(null);
@@ -42,15 +28,15 @@ export default function Header() {
         <div className="flex items-center gap-6 max-md:hidden">
           <div>
             <Image
-              path="page/galaxy-logo.png"
+              src="/image/galaxy-logo.png"
               alt="logo"
               width={115}
               height={60}
             />
           </div>
           <div className="hidden max-lg:block">
-            <Image
-              path="page/buy-ticket.webp"
+            <MyImage
+              path="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012682/z6557046734969_9c070767bf0df384017de26d80bf2c66_iyyjxc.jpg"
               alt="buy-tiket"
               width={112}
               height={36}
@@ -60,16 +46,16 @@ export default function Header() {
 
         <div className="hidden max-md:flex items-center gap-6 ">
           <div>
-            <Image
-              path="page/galaxy-logo.png"
+            <MyImage
+              path="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012661/z6557046179185_1650de137afbe85aa833a46e4b030380_xdkexw.jpg"
               alt="logo"
               width={76.6666666667}
               height={40}
             />
           </div>
           <div>
-            <Image
-              path="page/buy-ticket.webp"
+            <MyImage
+              path="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012682/z6557046734969_9c070767bf0df384017de26d80bf2c66_iyyjxc.jpg"
               alt="buy-tiket"
               width={84}
               height={27}
@@ -79,8 +65,8 @@ export default function Header() {
 
         <div className="max-lg:hidden flex gap-6 items-center text-[#4a4a4a]">
           <div className="max-sm:block">
-            <Image
-              path="page/buy-ticket.webp"
+            <MyImage
+              path="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012682/z6557046734969_9c070767bf0df384017de26d80bf2c66_iyyjxc.jpg"
               alt="buy-tiket"
               width={112}
               height={36}
@@ -103,21 +89,21 @@ export default function Header() {
             <Search size={16} />
           </span>
 
-          {isLoggedIn ? (
+          {isLogin ? (
             <div className="flex items-center gap-3">
-              <div className="text-[14px] font-medium text-textOrange">
+              {/* <div className="text-[14px] font-medium text-textOrange">
                 {user.avatar ? (
-                  <Image
+                 <MyImage
                     path={user.avatar}
                     alt="avatar"
                     width={40}
-                    height={40}
+                    height={40
                     className="rounded-full"
                   />
                 ) : (
                   // <CircleUser size={24} className="rounded-full" />
                   // Tạm thời
-                  <Image
+                 <MyImage
                     path={"page/ts.jpg?height=24&width=24"}
                     alt="avatar"
                     width={40}
@@ -125,7 +111,7 @@ export default function Header() {
                     className="rounded-full"
                   />
                 )}
-              </div>
+              </div> */}
               <span>{user.name || "Hoàng Thị Mỹ Linh"}</span>
             </div>
           ) : (
@@ -134,8 +120,8 @@ export default function Header() {
                 <Link href="/login">Đăng nhập</Link>
               </div>
               <div>
-                <Image
-                  path="page/join-member-Gstar.svg"
+                <MyImage
+                  path="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012700/z6557047121506_b0f7903684913ad76f302783a53458d6_n1wb9m.jpg"
                   alt="member"
                   width={100}
                   height={38.09}
@@ -151,7 +137,7 @@ export default function Header() {
             <span>
               <UserRound size={20} />
             </span>
-            {isLoggedIn ? (
+            {isLogin ? (
               <div className="flex items-center gap-2">
                 <div className="text-textOrange">avatar</div>
                 <button

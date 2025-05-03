@@ -1,8 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { getRefreshToken } from "@/lib/auth/token";
+import { setCookie } from "@/lib/cookie";
+
+import { useRouter } from "next/navigation";
 
 export function TheaterCard({ name, address, shows }) {
+  const router = useRouter();
   const formatTime = (date) => {
     return date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
@@ -18,6 +23,18 @@ export function TheaterCard({ name, address, shows }) {
     }
     showsByHall[show.hall].push(show);
   });
+
+  const hanldeShowClick = async (showId) => {
+    const { at, rt } = await getRefreshToken();
+
+    if (at === "null" && rt === "null") {
+      router.push("/login?redirect=/seat-selection/" + showId);
+    } else {
+      setCookie("at", at, 60 * 15);
+      setCookie("rt", rt, 24 * 60 * 60 * 7);
+      router.push("/seat-selection/" + showId);
+    }
+  };
 
   return (
     <div className="border rounded-lg p-6">
@@ -41,7 +58,7 @@ export function TheaterCard({ name, address, shows }) {
                   key={show.id}
                   variant="outline"
                   className="rounded-full"
-                  onClick={() => (window.location.href = `/booking/${show.id}`)}
+                  onClick={() => hanldeShowClick(show.id)}
                 >
                   {formatTime(show.startTime)}
                 </Button>

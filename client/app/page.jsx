@@ -7,85 +7,27 @@ import Movie from "@/components/page/movie";
 import Footer from "@/components/page/footer";
 import Section from "@/components/page/section";
 import { useMovie } from "@/hooks/useMovie";
-const sampleMovies = [
-  {
-    id: "1",
-    title: "Nhà Gia Tiên",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Hài, Tâm Linh",
-    trailer: true,
-    ticket: true,
-  },
-  {
-    id: "2",
-    title: "Deadpool & Wolverine",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Hành Động, Phiêu Lưu",
-    trailer: true,
-    ticket: true,
-  },
-  {
-    id: "3",
-    title: "Inside Out 2",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Hoạt Hình, Gia Đình",
-    trailer: true,
-    ticket: true,
-  },
-  {
-    id: "4",
-    title: "Bụi Đời Chợ Lớn",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Hành Động, Tội Phạm",
-    trailer: true,
-    ticket: true,
-  },
-  {
-    id: "5",
-    title: "Godzilla x Kong",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Hành Động, Viễn Tưởng",
-    trailer: true,
-    ticket: true,
-  },
-  {
-    id: "6",
-    title: "Dune: Part Two",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Khoa Học Viễn Tưởng",
-    trailer: true,
-    ticket: true,
-  },
-  {
-    id: "7",
-    title: "Kung Fu Panda 4",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Hoạt Hình, Hài",
-    trailer: true,
-    ticket: true,
-  },
-  {
-    id: "8",
-    title: "Twisters",
-    image: "page/nha-gia-tien-500_1739775156127.jpg",
-    genre: "Hành Động, Thảm Họa",
-    trailer: true,
-    ticket: true,
-  },
-];
 
 export default function HomePage() {
-  const { movies } = useMovie();
+  const { movies, isAccess } = useMovie();
   return (
     <div className="flex flex-col items-center gap-16">
       <div className="w-full">
-        <Header />
+        <Header isLogin={isAccess} />
         <div className="flex flex-col gap-12 items-center">
           <Slide />
           <Section>
             <SubNav title="PHIM" nav1="Đang chiếu" nav2="Sắp chiếu" />
             <div className="w-full mt-4">
-              <ListMovie movies={movies || sampleMovies} />
+              {movies && movies.length > 0 ? (
+                <ListMovie movies={movies} />
+              ) : (
+                <div className="flex flex-col items-center justify-center p-8 text-center rounded-lg border border-dashed">
+                  <h3 className="text-lg font-medium">
+                    Hiện tại không có phim nào
+                  </h3>
+                </div>
+              )}
             </div>
           </Section>
         </div>
@@ -106,7 +48,7 @@ export default function HomePage() {
             <Movie
               width={612}
               height={400}
-              image="page/reivew.jpg"
+              image="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012635/z6557045585230_a9383da1d4c5d5a3e04c499b9ad7115e_w3wheu.jpg"
               ticket={false}
               title="[Review] Nhà Gia Tiên: Huỳnh Lập Tiếp Tục Thắng Nhờ Đề Tài Tâm Linh?"
               styleText="font-bold text-[#4a4a4a] text-xl"
@@ -140,7 +82,7 @@ export default function HomePage() {
                 key={review.id}
                 width={195}
                 height={150}
-                image="page/reivew.jpg"
+                image="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012635/z6557045585230_a9383da1d4c5d5a3e04c499b9ad7115e_w3wheu.jpg"
                 ticket={false}
                 title={review.title}
                 styleText="font-bold text-[#4a4a4a] text-base"

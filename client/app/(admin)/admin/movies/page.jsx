@@ -165,6 +165,7 @@ export default function MoviesPage() {
         isOpen={isFormOpen}
         onClose={handleFormClose}
         movie={selectedMovie}
+        isCreated={selectedMovie === null}
       />
 
       {/* Delete Confirmation Modal */}

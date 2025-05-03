@@ -7,11 +7,14 @@ const handleSignUp = async ({ endpoint, data }) => {
         "Content-Type": "application/json",
       },
     });
+    console.log("response:::", response);
+
     if (response.status === 200) {
       return response.data;
     }
   } catch (error) {
     console.log(error);
+    console.log("error:::", error);
     return error.response;
   }
 };

@@ -1,12 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { X, Upload, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -14,176 +9,30 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { createMovie, updateMovie } from "@/lib/admin-api";
+import { FormField } from "@/components/admin/movie/form-field";
+import { TagInput } from "@/components/admin/movie/tag-input";
+import { ThumbnailUpload } from "@/components/admin/movie/thumbnail-upload";
+import { useMovieForm } from "@/hooks/use-movie-form";
 
-export function MovieForm({ isOpen, onClose, movie }) {
-  const [formData, setFormData] = useState({
-    movieName: "",
-    movieDescription: "",
-    movieAge: 0,
-    movieThumbnail: null,
-    movieTrailer: "",
-    movieDuration: 0,
-    movieLanguage: "",
-    movieCountry: "",
-    movieReleaseDate: "",
-    movieDirector: "",
-    movieProducer: "",
-  });
-  const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (movie) {
-      setFormData({
-        movieName: movie.movieName || "",
-        movieDescription: movie.movieDescription || "",
-        movieAge: movie.movieAge || 0,
-        movieThumbnail: null, // We don't set the file here
-        movieTrailer: movie.movieTrailer || "",
-        movieDuration: movie.movieDuration || 0,
-        movieLanguage: movie.movieLanguage || "",
-        movieCountry: movie.movieCountry || "",
-        movieReleaseDate: movie.movieReleaseDate
-          ? movie.movieReleaseDate.split("T")[0]
-          : "",
-        movieDirector: movie.movieDirector || "",
-        movieProducer: movie.movieProducer || "",
-      });
-      setThumbnailPreview(movie.movieThumbnail || null);
-    } else {
-      resetForm();
-    }
-  }, [movie, isOpen]);
-
-  const resetForm = () => {
-    setFormData({
-      movieName: "",
-      movieDescription: "",
-      movieAge: 0,
-      movieThumbnail: null,
-      movieTrailer: "",
-      movieDuration: 0,
-      movieLanguage: "",
-      movieCountry: "",
-      movieReleaseDate: "",
-      movieDirector: "",
-      movieProducer: "",
-    });
-    setThumbnailPreview(null);
-    setErrors({});
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Clear error when field is edited
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
-    }
-  };
-
-  const handleThumbnailChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, movieThumbnail: file }));
-      setThumbnailPreview(URL.createObjectURL(file));
-
-      // Clear error when field is edited
-      if (errors.movieThumbnail) {
-        setErrors((prev) => ({ ...prev, movieThumbnail: null }));
-      }
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.movieName.trim()) {
-      newErrors.movieName = "Movie name is required";
-    }
-
-    if (!formData.movieDescription.trim()) {
-      newErrors.movieDescription = "Description is required";
-    }
-
-    if (formData.movieAge < 0) {
-      newErrors.movieAge = "Age must be a positive number";
-    }
-
-    if (!movie && !formData.movieThumbnail) {
-      newErrors.movieThumbnail = "Thumbnail is required";
-    }
-
-    if (formData.movieDuration <= 0) {
-      newErrors.movieDuration = "Duration must be greater than 0";
-    }
-
-    if (!formData.movieLanguage.trim()) {
-      newErrors.movieLanguage = "Language is required";
-    }
-
-    if (!formData.movieCountry.trim()) {
-      newErrors.movieCountry = "Country is required";
-    }
-
-    if (!formData.movieReleaseDate) {
-      newErrors.movieReleaseDate = "Release date is required";
-    }
-
-    if (!formData.movieDirector.trim()) {
-      newErrors.movieDirector = "Director is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Create FormData object for multipart/form-data submission
-      const submitData = new FormData();
-
-      // Append all form fields
-      Object.keys(formData).forEach((key) => {
-        if (key === "movieThumbnail" && formData[key]) {
-          submitData.append(key, formData[key]);
-        } else if (key !== "movieThumbnail") {
-          submitData.append(key, formData[key]);
-        }
-      });
-
-      if (movie) {
-        // Update existing movie
-        await updateMovie(movie.movieId, submitData);
-      } else {
-        // Create new movie
-        await createMovie(submitData);
-      }
-
-      onClose(true); // Close with refresh flag
-    } catch (error) {
-      console.error("Error submitting movie:", error);
-      // Handle API errors
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      } else {
-        setErrors({ form: "Failed to save movie. Please try again." });
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+export function MovieForm({ isOpen, onClose, movie, isCreated = false }) {
+  const {
+    formData,
+    thumbnailPreview,
+    isSubmitting,
+    errors,
+    actorInput,
+    genreInput,
+    setActorInput,
+    setGenreInput,
+    handleChange,
+    handleThumbnailChange,
+    handleAddActor,
+    handleRemoveActor,
+    handleAddGenre,
+    handleRemoveGenre,
+    handleSubmit,
+    clearThumbnail,
+  } = useMovieForm(movie, onClose);
 
   return (
     <Dialog open={isOpen} onOpenChange={() => !isSubmitting && onClose(false)}>
@@ -201,260 +50,162 @@ export function MovieForm({ isOpen, onClose, movie }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="movieName">
-                  Movie Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="movieName"
-                  name="movieName"
-                  value={formData.movieName}
-                  onChange={handleChange}
-                  className={errors.movieName ? "border-red-500" : ""}
-                />
-                {errors.movieName && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.movieName}
-                  </p>
-                )}
-              </div>
+              <FormField
+                id="movieName"
+                label="Movie Name"
+                value={formData.movieName}
+                onChange={handleChange}
+                error={errors.movieName}
+                required
+              />
 
-              <div>
-                <Label htmlFor="movieDescription">
-                  Description <span className="text-red-500">*</span>
-                </Label>
-                <Textarea
-                  id="movieDescription"
-                  name="movieDescription"
-                  value={formData.movieDescription}
-                  onChange={handleChange}
-                  rows={5}
-                  className={errors.movieDescription ? "border-red-500" : ""}
-                />
-                {errors.movieDescription && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.movieDescription}
-                  </p>
-                )}
-              </div>
+              <FormField
+                id="movieDescription"
+                label="Description"
+                value={formData.movieDescription}
+                onChange={handleChange}
+                error={errors.movieDescription}
+                required
+                multiline
+                rows={5}
+              />
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="movieAge">
-                    Age Rating <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="movieAge"
-                    name="movieAge"
-                    type="number"
-                    value={formData.movieAge}
-                    onChange={handleChange}
-                    min="0"
-                    className={errors.movieAge ? "border-red-500" : ""}
-                  />
-                  {errors.movieAge && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.movieAge}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="movieDuration">
-                    Duration (min) <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="movieDuration"
-                    name="movieDuration"
-                    type="number"
-                    value={formData.movieDuration}
-                    onChange={handleChange}
-                    min="1"
-                    className={errors.movieDuration ? "border-red-500" : ""}
-                  />
-                  {errors.movieDuration && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.movieDuration}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="movieTrailer">Trailer URL</Label>
-                <Input
-                  id="movieTrailer"
-                  name="movieTrailer"
-                  value={formData.movieTrailer}
+                <FormField
+                  id="movieAge"
+                  label="Age Rating"
+                  value={formData.movieAge}
                   onChange={handleChange}
-                  placeholder="https://youtube.com/..."
-                  className={errors.movieTrailer ? "border-red-500" : ""}
+                  error={errors.movieAge}
+                  required
+                  type="number"
+                  min={0}
                 />
-                {errors.movieTrailer && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.movieTrailer}
-                  </p>
-                )}
+
+                <FormField
+                  id="movieDuration"
+                  label="Duration (min)"
+                  value={formData.movieDuration}
+                  onChange={handleChange}
+                  error={errors.movieDuration}
+                  required
+                  type="number"
+                  min={1}
+                />
               </div>
+
+              <FormField
+                id="movieTrailer"
+                label="Trailer URL"
+                value={formData.movieTrailer}
+                onChange={handleChange}
+                error={errors.movieTrailer}
+                placeholder="https://youtube.com/..."
+              />
+
+              <FormField
+                id="movieRating"
+                label="Rating (0-10)"
+                value={formData.movieRating}
+                onChange={handleChange}
+                error={errors.movieRating}
+                type="number"
+                min={0}
+                max={10}
+                step={0.1}
+              />
+
+              {isCreated === false && (
+                <TagInput
+                  label="Actors"
+                  inputValue={actorInput}
+                  onInputChange={setActorInput}
+                  onAddTag={handleAddActor}
+                  onRemoveTag={handleRemoveActor}
+                  tags={formData.actors}
+                  tagKey="actorName"
+                  error={errors.actors}
+                />
+              )}
+
+              <TagInput
+                label="Genres"
+                inputValue={genreInput}
+                onInputChange={setGenreInput}
+                onAddTag={handleAddGenre}
+                onRemoveTag={handleRemoveGenre}
+                tags={formData.genres}
+                tagKey="genreName"
+                error={errors.genres}
+              />
             </div>
 
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="movieThumbnail">
-                  Thumbnail {!movie && <span className="text-red-500">*</span>}
-                </Label>
-                <div className="mt-2">
-                  {thumbnailPreview ? (
-                    <div className="relative w-full h-[200px] mb-4">
-                      <Image
-                        src={thumbnailPreview || "/placeholder.svg"}
-                        alt="Thumbnail preview"
-                        fill
-                        className="object-cover rounded-md"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                        onClick={() => {
-                          setThumbnailPreview(null);
-                          setFormData((prev) => ({
-                            ...prev,
-                            movieThumbnail: null,
-                          }));
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div
-                      className={`border-2 border-dashed rounded-md p-8 text-center cursor-pointer hover:bg-gray-50 ${
-                        errors.movieThumbnail
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      onClick={() =>
-                        document.getElementById("movieThumbnail").click()
-                      }
-                    >
-                      <Upload className="h-8 w-8 mx-auto text-gray-400" />
-                      <p className="mt-2 text-sm text-gray-500">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        PNG, JPG, GIF up to 5MB
-                      </p>
-                    </div>
-                  )}
-                  <input
-                    id="movieThumbnail"
-                    name="movieThumbnail"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleThumbnailChange}
-                    className="hidden"
-                  />
-                  {errors.movieThumbnail && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.movieThumbnail}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <ThumbnailUpload
+                thumbnailPreview={thumbnailPreview}
+                onUploadClick={() =>
+                  document.getElementById("movieThumbnail")?.click()
+                }
+                onClearThumbnail={clearThumbnail}
+                error={errors.movieThumbnail}
+                required={!movie}
+              />
+              <input
+                id="movieThumbnail"
+                name="movieThumbnail"
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailChange}
+                className="hidden"
+              />
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="movieLanguage">
-                    Language <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="movieLanguage"
-                    name="movieLanguage"
-                    value={formData.movieLanguage}
-                    onChange={handleChange}
-                    className={errors.movieLanguage ? "border-red-500" : ""}
-                  />
-                  {errors.movieLanguage && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.movieLanguage}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="movieCountry">
-                    Country <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="movieCountry"
-                    name="movieCountry"
-                    value={formData.movieCountry}
-                    onChange={handleChange}
-                    className={errors.movieCountry ? "border-red-500" : ""}
-                  />
-                  {errors.movieCountry && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.movieCountry}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="movieReleaseDate">
-                  Release Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="movieReleaseDate"
-                  name="movieReleaseDate"
-                  type="date"
-                  value={formData.movieReleaseDate}
+                <FormField
+                  id="movieLanguage"
+                  label="Language"
+                  value={formData.movieLanguage}
                   onChange={handleChange}
-                  className={errors.movieReleaseDate ? "border-red-500" : ""}
+                  error={errors.movieLanguage}
+                  required
                 />
-                {errors.movieReleaseDate && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.movieReleaseDate}
-                  </p>
-                )}
+
+                <FormField
+                  id="movieCountry"
+                  label="Country"
+                  value={formData.movieCountry}
+                  onChange={handleChange}
+                  error={errors.movieCountry}
+                  required
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="movieDirector">
-                    Director <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="movieDirector"
-                    name="movieDirector"
-                    value={formData.movieDirector}
-                    onChange={handleChange}
-                    className={errors.movieDirector ? "border-red-500" : ""}
-                  />
-                  {errors.movieDirector && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.movieDirector}
-                    </p>
-                  )}
-                </div>
+              <FormField
+                id="movieReleaseDate"
+                label="Release Date"
+                value={formData.movieReleaseDate}
+                onChange={handleChange}
+                error={errors.movieReleaseDate}
+                required
+                type="date"
+              />
 
-                <div>
-                  <Label htmlFor="movieProducer">Producer</Label>
-                  <Input
-                    id="movieProducer"
-                    name="movieProducer"
-                    value={formData.movieProducer}
-                    onChange={handleChange}
-                    className={errors.movieProducer ? "border-red-500" : ""}
-                  />
-                  {errors.movieProducer && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.movieProducer}
-                    </p>
-                  )}
-                </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  id="movieDirector"
+                  label="Director"
+                  value={formData.movieDirector}
+                  onChange={handleChange}
+                  error={errors.movieDirector}
+                  required
+                />
+
+                <FormField
+                  id="movieProducer"
+                  label="Producer"
+                  value={formData.movieProducer}
+                  onChange={handleChange}
+                  error={errors.movieProducer}
+                />
               </div>
             </div>
           </div>

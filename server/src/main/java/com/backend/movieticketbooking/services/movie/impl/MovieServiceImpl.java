@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -56,6 +58,7 @@ public class MovieServiceImpl implements MovieService {
     @Autowired
     @Qualifier("movieLocalCacheService")
     LocalCacheService<String, MovieCache> movieLocalCacheService;
+
 
     @Override
     @Transactional
@@ -155,6 +158,18 @@ public class MovieServiceImpl implements MovieService {
             locker.unlock();
         }
     }
+
+    @Override
+    public List<MovieDTO> getAllMovies() {
+       List<MovieEntity> movies = movieRepository.getAllMovies();
+       List<MovieDTO> listMovie = new ArrayList<>();
+       movies.forEach(movieEntity -> {
+           MovieDTO movieDTO = movieMapper.toMovieDTO(movieEntity);
+           listMovie.add(movieDTO);
+       });
+       return listMovie;
+    }
+
 
     private String getMovieKey(int movieId) {
         return "movie:" + movieId;

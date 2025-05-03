@@ -1,8 +1,11 @@
-import Image from "@/components/page/imagekit";
+// import Image from "@/components/page/imagekit";
 import Link from "next/link";
 import { TicketCheck, CirclePlay } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { useRouter } from "next/navigation";
+import { VideoModal } from "../movie/video-modal";
+import { useState } from "react";
+import MyImage from "@/components/page/imagekit";
 export default function Movie({
   width,
   height,
@@ -13,8 +16,14 @@ export default function Movie({
   ticket = true,
   className,
   styleText,
-  href = "/",
+  id = 1,
 }) {
+  const router = useRouter();
+
+  const [videoOpen, setVideoOpen] = useState(false);
+  const handlerClickMovie = (movieId) => {
+    router.push(`/booking/${movieId}`);
+  };
   return (
     <div
       className={cn(
@@ -23,8 +32,11 @@ export default function Movie({
         className
       )}
     >
-      <div className="group relative rounded-md overflow-hidden">
-        <Image
+      <div
+        className="group relative rounded-md overflow-hidden"
+        onClick={() => handlerClickMovie(id)}
+      >
+        <MyImage
           path={image}
           alt={title}
           width={width}
@@ -39,7 +51,7 @@ export default function Movie({
           >
             {ticket && (
               <Link
-                href={`${href}/tickets`}
+                href={`booking/${id}`}
                 className="text-white bg-[#f26b38] w-[120px] h-[40px] flex gap-2 items-center justify-center
                          rounded-md text-sm hover:bg-[#fb9440] transition-colors"
                 aria-label={`Mua vé xem phim ${title}`}
@@ -50,21 +62,30 @@ export default function Movie({
             )}
 
             {trailer && (
-              <Link
-                href={`${href}/trailer`}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVideoOpen(!videoOpen);
+                }}
                 className="border border-white text-white w-[120px] h-[40px] flex gap-2 items-center justify-center
                          rounded-md text-sm hover:bg-[#fb9440] hover:border-[#fb9440] transition-colors"
                 aria-label={`Xem trailer phim ${title}`}
               >
                 <CirclePlay size={20} />
                 <span>Trailer</span>
-              </Link>
+              </div>
             )}
           </div>
         )}
       </div>
 
-      <Link href={href} className="block">
+      <VideoModal
+        open={videoOpen}
+        onOpenChange={setVideoOpen}
+        trailerUrl={trailer}
+      />
+
+      <Link href={`booking/${id}`} className="block">
         <h3
           className={cn(
             trailer && "font-bold",

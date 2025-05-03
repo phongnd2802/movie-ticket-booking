@@ -6,11 +6,13 @@ import { MovieContent } from "@/components/movie/movie-content";
 import { NowShowingSection } from "@/components/movie/now-showing-section";
 import { VideoModal } from "@/components/movie/video-modal";
 import { CastModal } from "@/components/movie/cast-modal";
+import { getMovieById } from "@/endpoint/auth";
 import {
-  fetchMovieDetails,
+  // fetchMovieDetails,
   fetchActorDetails,
   fetchRelatedMovies,
 } from "@/lib/api";
+import axios from "axios";
 
 export default function MovieDetailPage({ params }) {
   const { movieId } = params;
@@ -32,7 +34,23 @@ export default function MovieDetailPage({ params }) {
         setLoading(true);
 
         // Fetch movie details
-        const movieResponse = await fetchMovieDetails(movieId);
+        const mvRp = async () => {
+          const response = await axios.get(
+            getMovieById(movieId),
+
+            {
+              headers: {
+                "content-type": "application/json",
+              },
+            }
+          );
+          if (!response.status === 200) {
+            throw new Error("Failed to fetch movie details");
+          }
+          return await response.data;
+        };
+        const movieResponse = await mvRp();
+        console.log("movieResponse", movieResponse);
         setMovieData(movieResponse.metadata);
 
         // Set initial active date based on first available show date

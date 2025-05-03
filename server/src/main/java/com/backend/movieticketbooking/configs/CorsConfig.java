@@ -19,7 +19,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")  // Áp dụng cho tất cả các đường dẫn
                 .allowedOrigins("http://localhost:3000", "https://localhost:3000")  // Cho phép origin này
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")  // Thêm OPTIONS cho preflight request
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")  // Thêm OPTIONS cho preflight request
                 .allowedHeaders("*")  // Cho phép tất cả các headers
                 .allowCredentials(true)  // Cho phép gửi cookies, thông tin xác thực
                 .maxAge(3600);  // Thời gian cache cho CORS (tính bằng giây)
@@ -30,7 +30,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 

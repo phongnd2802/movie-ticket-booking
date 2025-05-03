@@ -5,7 +5,7 @@ export default function Slide() {
     <div className="w-full relative">
       <div className="relative w-full h-[500px] overflow-hidden">
         <Image
-          path="page/interstellar.jpg"
+          path="https://res.cloudinary.com/dwwrqkjnu/image/upload/v1746012604/z6557044722553_84c1b1cc20815de2b730a8753de8ca17_ric3ps.jpg"
           alt="Movie Banner"
           width={1920}
           height={500}

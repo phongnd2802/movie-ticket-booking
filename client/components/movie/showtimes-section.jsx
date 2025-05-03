@@ -18,7 +18,6 @@ export function ShowtimesSection({ shows, activeDate, setActiveDate, dates }) {
 
   const noShows = !shows || shows.length === 0;
 
-  // Get unique provinces from shows
   const provinces = useMemo(() => {
     if (noShows) return [];
 
@@ -29,7 +28,6 @@ export function ShowtimesSection({ shows, activeDate, setActiveDate, dates }) {
     return uniqueProvinces;
   }, [shows, noShows]);
 
-  // Get unique cinemas from shows, filtered by selected province if applicable
   const cinemas = useMemo(() => {
     if (noShows) return [];
 

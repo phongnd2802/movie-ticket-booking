@@ -77,6 +77,7 @@ public class AuthController {
     @PatchMapping("/refresh-token")
     public ApiResponse<RefreshTokenResponse> refreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
+        System.out.println(authorizationHeader);
         String token = authorizationHeader.substring(7);
 
         RefreshTokenResponse result = authService.refreshToken(token);

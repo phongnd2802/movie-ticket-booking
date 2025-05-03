@@ -6,8 +6,13 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchShowDetails } from "@/lib/api";
+import { useSeat } from "@/contexts/booking-context";
+import axios from "axios";
+import { getAllFood } from "@/endpoint/auth";
+import { getRefreshToken } from "@/lib/auth/token";
 
 export default function FoodSelectionPage({ params }) {
+  const { inforBooking } = useSeat();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { id } = params;
@@ -17,7 +22,45 @@ export default function FoodSelectionPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cart, setCart] = useState([]);
+  const [user, setUser] = useState(null);
+  const [food, setFood] = useState([]);
+  useEffect(() => {
+    console.log("inforBooking:::", inforBooking);
 
+    if (inforBooking.length === 0) {
+      router.push(`/seat-selection/${id}`);
+    }
+  }, [selectedSeats, id]);
+  useEffect(() => {
+    const userCurrent = localStorage.getItem("user");
+    if (userCurrent) {
+      setUser(JSON.parse(userCurrent));
+    }
+  }, []);
+  useEffect(() => {
+    const { at, rt } = getRefreshToken();
+    if (at === "null" && rt === "null") {
+      router.push("/login?redirect=/food-selection/" + id);
+    } else {
+      const fetchFood = async () => {
+        const response = await axios.get(
+          getAllFood,
+          {},
+          {
+            headers: {
+              "content-type": "application/json",
+              Authorization: `Bearer ${at}`,
+            },
+          }
+        );
+        if (!response.status === 200) {
+          if (response.data.code === 20000) {
+            setFood(response.data.metadata);
+          }
+        }
+      };
+    }
+  });
   // Fetch show details
   useEffect(() => {
     const loadData = async () => {
@@ -192,7 +235,7 @@ export default function FoodSelectionPage({ params }) {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-sm text-right">
-              <div className="font-medium">Lê Trương Sơn</div>
+              <div className="font-medium">{user.userName}</div>
               <div className="text-muted-foreground">0 Stars</div>
             </div>
             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -209,7 +252,7 @@ export default function FoodSelectionPage({ params }) {
             <div className="min-w-[150px] py-3 text-center border-b-2 border-primary text-primary font-medium">
               Chọn phim / Rạp / Suất
             </div>
-            <div className="min-w-[100px] py-3 text-center border-b-2 border-primary text-primary font-medium">
+            <div className="min-w-[totalPrice100px] py-3 text-center border-b-2 border-primary text-primary font-medium">
               Chọn ghế
             </div>
             <div className="min-w-[100px] py-3 text-center border-b-2 border-primary text-primary font-medium">
@@ -232,7 +275,7 @@ export default function FoodSelectionPage({ params }) {
             <h2 className="text-2xl font-bold mb-6">Thức ăn & Đồ uống</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {foodItems.map((item) => (
+              {food.map((item) => (
                 <div
                   key={item.id}
                   className="border rounded-lg overflow-hidden"
@@ -252,7 +295,7 @@ export default function FoodSelectionPage({ params }) {
                     </p>
                     <div className="mt-4 flex items-center justify-between">
                       <span className="font-bold">
-                        {formatCurrency(item.price)}
+                        {inforBooking.totalPrice} VND
                       </span>
 
                       {getItemQuantity(item.id) > 0 ? (
@@ -302,7 +345,7 @@ export default function FoodSelectionPage({ params }) {
               <div className="p-4">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium">{movieDetails.movieName}</h4>
+                    <h4 className="font-medium">{inforBooking.movieName}</h4>
                     <p className="text-sm text-muted-foreground">
                       {movieDetails.movieFormat}
                     </p>
@@ -311,17 +354,15 @@ export default function FoodSelectionPage({ params }) {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Rạp:</span>
-                      <span>
-                        {movieDetails.cinemaName} - {movieDetails.cinemaHall}
-                      </span>
+                      <span>{inforBooking.cinemaHall}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Suất:</span>
-                      <span>{movieDetails.showTime}</span>
+                      <span>{inforBooking.showId}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Ghế:</span>
-                      <span>{selectedSeats.join(", ")}</span>
+                      <span>{inforBooking.seatIds.join(", ")}</span>
                     </div>
                   </div>
 
@@ -354,7 +395,7 @@ export default function FoodSelectionPage({ params }) {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Tổng cộng</span>
                       <span className="font-bold text-lg text-primary">
-                        {formatCurrency(getTotalPrice())}
+                        {inforBooking.totalPrice} VND
                       </span>
                     </div>
                   </div>

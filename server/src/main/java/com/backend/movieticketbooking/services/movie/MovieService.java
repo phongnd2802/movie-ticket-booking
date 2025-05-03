@@ -4,7 +4,11 @@ import com.backend.movieticketbooking.dtos.movie.MovieDTO;
 import com.backend.movieticketbooking.dtos.movie.request.CreateMovieRequest;
 import com.backend.movieticketbooking.services.movie.cache.models.MovieCache;
 
+import java.util.List;
+
 public interface MovieService {
     MovieDTO createMovie(CreateMovieRequest request);
     MovieCache getMovieById(int movieId);
+
+    List<MovieDTO> getAllMovies();
 }

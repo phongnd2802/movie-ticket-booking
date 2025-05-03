@@ -1,39 +1,72 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/page/header";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { fetchShowDetails } from "@/lib/api";
 
+import { getSeats } from "@/endpoint/auth";
+import axiosClient from "@/lib/auth/axiosClient";
+import MyImage from "@/components/page/imagekit";
+import { useSeat } from "@/contexts/booking-context";
 export default function SeatSelectionPage({ params }) {
+  const { setInforBooking } = useSeat();
   const router = useRouter();
   const { id } = params;
   const [showDetails, setShowDetails] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ortherShows, setOrtherShows] = useState([]);
+  const [showTime, setShowTime] = useState(null);
+  const [cinemaHall, setCinemaHall] = useState(null);
+  const [seatUnavailable, setSeatUnavailable] = useState([]);
+  const [seatCouple, setSeatCouple] = useState([]);
+
+  const handleSubmit = () => {
+    const inf = {
+      seatIds: selectedSeats.map((seat) => seat.id),
+      cinemaHall: cinemaHall,
+      showId: showTime,
+      movieName: showDetails.movieName,
+      totalPrice: getTotalPrice(),
+    };
+    setInforBooking(inf);
+    router.push("/food-selection/1");
+  };
 
   // Fetch show details
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const data = await fetchShowDetails(id);
-        console.log(data);
-        setShowDetails(data);
+        const fetchShowDetails = async () => {
+          const response = await axiosClient.get(getSeats(id));
+          if (!response.status === 200) {
+            throw new Error("Failed to fetch show details");
+          } else {
+            if (response.data.code !== 20000) {
+              console.log("Error:", response.data.message);
+            }
+          }
+
+          return await response.data;
+        };
+        const data = await fetchShowDetails();
+        setShowDetails(data.metadata.movie);
+        setOrtherShows(data.metadata.otherShows);
+        setShowTime(data.metadata.showStartTime);
+        setCinemaHall(data.metadata.cinemaHallName);
+        data.metadata.seats.map((seat) => {
+          if (seat.staseatStatetus === "UNAVAILABLE") {
+            setSeatUnavailable((prev) => [...prev, seat]);
+          } else if (seat.cinemaHallSeat.seatType === "COUPLE") {
+            setSeatCouple((prev) => [...prev, seat]);
+          }
+        });
         setLoading(false);
       } catch (err) {
-        console.error("Error loading show details:", err);
         setError(err.message);
         setLoading(false);
       }
@@ -51,10 +84,8 @@ export default function SeatSelectionPage({ params }) {
     if (isSeatSelected) {
       setSelectedSeats(selectedSeats.filter((seat) => seat.id !== seatId));
     } else {
-      setSelectedSeats([
-        ...selectedSeats,
-        { id: seatId, row, col, price: 90000 },
-      ]);
+      const price = row === "P" ? 180000 : 90000;
+      setSelectedSeats([...selectedSeats, { id: seatId, row, col, price }]);
     }
   };
 
@@ -63,38 +94,7 @@ export default function SeatSelectionPage({ params }) {
   };
 
   const isSeatUnavailable = (row, col) => {
-    // Simulate some unavailable seats
-    const unavailableSeats = [
-      "K13",
-      "K14",
-      "J13",
-      "J14",
-      "I13",
-      "I14",
-      "I15",
-      "H7",
-      "H8",
-      "H9",
-      "H10",
-      "H11",
-      "H12",
-      "H13",
-      "H14",
-      "H15",
-      "G11",
-      "G12",
-      "G13",
-      "G14",
-      "G15",
-      "F13",
-      "F14",
-    ];
-    return unavailableSeats.includes(`${row}${col}`);
-  };
-
-  const isSeatVIP = (row, col) => {
-    // VIP seats are typically in the middle rows
-    return ["F", "G", "H", "I", "J"].includes(row) && col >= 7 && col <= 18;
+    return seatUnavailable.includes(`${row}${col}`);
   };
 
   const isSeatCouple = (row, col) => {
@@ -142,6 +142,15 @@ export default function SeatSelectionPage({ params }) {
     });
   };
 
+  const handleShowTimeClick = (showStartTime) => {
+    const showStartTimeDate =
+      showStartTime.split("T")[0] +
+      "T" +
+      showStartTime.split("T")[1].slice(0, -3);
+    setShowTime(showStartTimeDate);
+  };
+
+  // loading
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -153,6 +162,7 @@ export default function SeatSelectionPage({ params }) {
     );
   }
 
+  // error
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -170,22 +180,10 @@ export default function SeatSelectionPage({ params }) {
     );
   }
 
-  // Mock data for demonstration
-  const movieDetails = showDetails || {
-    movieName: "Địa Đạo: Mặt Trời Trong Bóng Tối",
-    movieFormat: "2D Phụ Đề",
-    movieRating: "T16",
-    showTime: "10:15",
-    showDate: "2025-04-12",
-    cinemaName: "Galaxy Nguyễn Du",
-    cinemaHall: "RẠP 2",
-  };
-
   // Generate rows A-P
-  const rows = "ABCDEFGHIJKLMNOP".split("");
+  const rows = "ABCDEFGHIJKLMNO".split("");
 
-  // Generate columns 1-25
-  const columns = Array.from({ length: 25 }, (_, i) => i + 1);
+  const columns = Array.from({ length: 16 }, (_, i) => i + 1);
 
   return (
     <div className="min-h-screen bg-background">
@@ -220,32 +218,25 @@ export default function SeatSelectionPage({ params }) {
           {/* Seat Selection */}
           <div className="flex-1">
             {/* Showtimes */}
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex items-center gap-4">
               <div className="font-medium">Đổi suất chiếu</div>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {[
-                  "10:15",
-                  "11:45",
-                  "12:30",
-                  "13:30",
-                  "15:00",
-                  "16:30",
-                  "17:30",
-                  "20:00",
-                  "21:00",
-                  "22:30",
-                ].map((time) => (
-                  <button
-                    key={time}
-                    className={`px-4 py-2 text-sm rounded-md min-w-[60px] ${
-                      time === movieDetails.showTime
-                        ? "bg-primary text-white"
-                        : "border hover:bg-gray-100"
-                    }`}
-                  >
-                    {time}
-                  </button>
-                ))}
+                {ortherShows &&
+                  ortherShows.map((showStartTime) => (
+                    <button
+                      key={showStartTime.showId}
+                      className={`px-4 py-2 text-sm rounded-md min-w-[60px] ${
+                        showStartTime === showDetails.showTime
+                          ? "bg-primary text-white"
+                          : "border hover:bg-gray-100"
+                      }`}
+                      onClick={() =>
+                        handleShowTimeClick(showStartTime.showStartTime)
+                      }
+                    >
+                      {showStartTime.showStartTime.split("T")[1].slice(0, -3)}
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -261,66 +252,93 @@ export default function SeatSelectionPage({ params }) {
                 </div>
 
                 {/* Seat Grid */}
-                <div className="grid grid-cols-[auto_repeat(25,minmax(24px,1fr))_auto] gap-1">
-                  {/* Row Headers */}
-                  <div className="font-medium text-center">P</div>
-                  {columns.map((col) => (
-                    <div
-                      key={`header-${col}`}
-                      className="text-[10px] text-center"
-                    >
-                      {col}
-                    </div>
-                  ))}
-                  <div className="font-medium text-center">P</div>
-
-                  {/* Seats */}
-                  {rows.map((row) => (
-                    <>
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-[auto_repeat(16,minmax(24px,1fr))_auto] gap-[2px]">
+                    {/* Row Headers */}
+                    <div className="font-medium text-center"></div>
+                    {columns.map((col) => (
                       <div
-                        key={`row-${row}`}
-                        className="font-medium text-center self-center"
+                        key={`header-${col}`}
+                        className="text-[10px] text-center"
                       >
-                        {row}
+                        {col}
                       </div>
-                      {columns.map((col) => {
-                        const unavailable = isSeatUnavailable(row, col);
-                        const selected = isSeatSelected(row, col);
-                        const vip = isSeatVIP(row, col);
-                        const couple = isSeatCouple(row, col);
+                    ))}
+                    <div className="font-medium text-center"></div>
 
-                        return (
-                          <button
-                            key={`seat-${row}${col}`}
-                            disabled={unavailable}
-                            onClick={() => handleSeatClick(row, col)}
-                            className={`
-                              w-6 h-6 flex items-center justify-center text-[10px] rounded-sm
+                    {/* Seats */}
+                    {rows.map((row) => (
+                      <>
+                        <div
+                          key={`row-${row}`}
+                          className="font-medium text-center self-center"
+                        >
+                          {row}
+                        </div>
+                        {columns.map((col) => {
+                          const unavailable = isSeatUnavailable(row, col);
+                          const selected = isSeatSelected(row, col);
+                          const couple = isSeatCouple(row, col);
+
+                          return (
+                            <button
+                              key={`seat-${row}${col}`}
+                              disabled={unavailable}
+                              onClick={() => handleSeatClick(row, col)}
+                              className={`
+                              w-6 h-6 flex items-center justify-center text-[10px] rounded-sm m-auto
                               ${
                                 unavailable
                                   ? "bg-red-500 text-white cursor-not-allowed"
                                   : selected
                                   ? "bg-orange-500 text-white"
-                                  : vip
-                                  ? "bg-blue-100 border border-blue-300 hover:bg-blue-200"
-                                  : couple
-                                  ? "bg-pink-100 border border-pink-300 hover:bg-pink-200"
                                   : "bg-white border border-gray-300 hover:bg-gray-100"
                               }
                             `}
-                          >
-                            {unavailable ? "X" : ""}
-                          </button>
-                        );
-                      })}
-                      <div
-                        key={`row-end-${row}`}
-                        className="font-medium text-center self-center"
-                      >
-                        {row}
-                      </div>
-                    </>
-                  ))}
+                            >
+                              {unavailable ? "X" : ""}
+                            </button>
+                          );
+                        })}
+                        <div
+                          key={`row-end-${row}`}
+                          className="font-medium text-center self-center"
+                        >
+                          {row}
+                        </div>
+                      </>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-[auto_repeat(8,minmax(48px,1fr))_auto] gap-[2px]">
+                    <div className="font-medium text-center">P</div>
+                    {columns.slice(0, columns.length / 2).map((col) => {
+                      const row = "P";
+                      const unavailable = isSeatUnavailable(row, col);
+                      const selected = isSeatSelected(row, col);
+
+                      return (
+                        <button
+                          key={`seat-${row}${col}`}
+                          disabled={unavailable}
+                          onClick={() => handleSeatClick(row, col)}
+                          className={`
+                              w-12 h-6 flex items-center justify-center text-[10px] rounded-sm m-auto
+                              ${
+                                unavailable
+                                  ? "bg-red-500 text-white cursor-not-allowed"
+                                  : selected
+                                  ? "bg-orange-500 text-white"
+                                  : "bg-white border border-gray-300 hover:bg-gray-100"
+                              }
+                            `}
+                        >
+                          {unavailable ? "X" : ""}
+                        </button>
+                      );
+                    })}
+                    <div className="font-medium text-center">P</div>
+                  </div>
                 </div>
 
                 {/* Legend */}
@@ -333,10 +351,7 @@ export default function SeatSelectionPage({ params }) {
                     <div className="w-4 h-4 bg-orange-500 rounded-sm"></div>
                     <span className="text-sm">Ghế đang chọn</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border border-blue-300 bg-blue-100 rounded-sm"></div>
-                    <span className="text-sm">Ghế VIP</span>
-                  </div>
+
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border border-gray-300 bg-white rounded-sm"></div>
                     <span className="text-sm">Ghế đôi</span>
@@ -354,38 +369,31 @@ export default function SeatSelectionPage({ params }) {
           <div className="lg:w-[300px]">
             <div className="border rounded-lg overflow-hidden">
               <div className="relative aspect-video">
-                <Image
-                  src="/emiu.jpg?height=200&width=300"
-                  alt={movieDetails.movieName}
-                  fill
+                <MyImage
+                  path={showDetails.movieThumbnail}
+                  alt={showDetails.movieName}
+                  width={134}
+                  height={200}
                   className="object-cover"
                 />
               </div>
               <div className="p-4">
                 <div className="flex items-start gap-2">
                   <h2 className="text-lg font-semibold">
-                    {movieDetails.movieName}
+                    {showDetails.movieName}
                   </h2>
-                  <Badge variant="outline" className="bg-orange-500 text-white">
-                    {movieDetails.movieRating}
-                  </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {movieDetails.movieFormat}
-                </p>
 
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Rạp:</span>
-                    <span className="text-sm font-medium">
-                      {movieDetails.cinemaName} - {movieDetails.cinemaHall}
-                    </span>
+                    <span className="text-sm font-medium">{cinemaHall}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Suất:</span>
                     <span className="text-sm font-medium">
-                      {movieDetails.showTime} -{" "}
-                      {formatDate(movieDetails.showDate)}
+                      {showTime.split("T")[1]} -{" "}
+                      {formatDate(showTime.split("T")[0])}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -417,20 +425,14 @@ export default function SeatSelectionPage({ params }) {
         <div className="container flex items-center justify-between">
           <Button
             variant="outline"
-            onClick={() => router.push(`/booking/${movieDetails.movieId}`)}
+            onClick={() => router.push(`/booking/${showDetails.movieId}`)}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             Quay lại
           </Button>
           <Button
             disabled={selectedSeats.length === 0}
-            onClick={() =>
-              router.push(
-                `/food-selection/${id}?seats=${selectedSeats
-                  .map((s) => s.id)
-                  .join(",")}`
-              )
-            }
+            onClick={() => handleSubmit()}
           >
             Tiếp tục
             <ChevronRight className="ml-2 h-4 w-4" />

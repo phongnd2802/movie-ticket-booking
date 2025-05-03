@@ -15,15 +15,13 @@ export default function ListMovie({ movies, className }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {movies.slice(0, visibleMovies).map((movie) => (
           <Movie
-            key={movie.id}
+            key={movie.movieId}
             width={300}
             height={450}
-            image={movie.image}
-            title={movie.title}
-            genre={movie.genre}
-            trailer={movie.trailer}
-            ticket={movie.ticket}
-            href={`/movies/${movie.id}`}
+            image={movie.movieThumbnail}
+            title={movie.movieName}
+            trailer={movie.movieTrailer}
+            id={movie.movieId}
           />
         ))}
       </div>
