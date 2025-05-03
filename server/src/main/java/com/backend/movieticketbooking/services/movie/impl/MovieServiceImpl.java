@@ -4,6 +4,7 @@ package com.backend.movieticketbooking.services.movie.impl;
 import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.dtos.movie.MovieDTO;
 import com.backend.movieticketbooking.dtos.movie.request.CreateMovieRequest;
+import com.backend.movieticketbooking.dtos.movie.response.MovieHome;
 import com.backend.movieticketbooking.entities.movies.MovieEntity;
 import com.backend.movieticketbooking.exceptions.BadRequestException;
 import com.backend.movieticketbooking.exceptions.InternalServerException;
@@ -21,6 +22,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +31,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -39,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class MovieServiceImpl implements MovieService {
 
     @Autowired
+    @Qualifier("cloudinaryStorage")
     StorageService storageService;
 
     @Autowired
@@ -97,6 +101,10 @@ public class MovieServiceImpl implements MovieService {
     public MovieCache getMovieById(int movieId) {
         MovieCache movieCached = movieLocalCacheService.get(getMovieKey(movieId));
         if (movieCached != null) {
+            if (movieCached.getMovieId() == -1) {
+                log.info("GET MOVIE ID {} NOT FOUND FROM LOCAL CACHE", movieId);
+                throw new BadRequestException(ErrorCode.MOVIE_NOT_FOUND);
+            }
             log.info("GET MOVIE ID {} FROM LOCAL CACHE", movieId);
             return movieCached;
         }
@@ -151,25 +159,24 @@ public class MovieServiceImpl implements MovieService {
             distributedCacheService.setObjectTTL(getMovieKey(movieEntity.getMovieId()), movieCached, 300L, TimeUnit.SECONDS);
             movieLocalCacheService.put(getMovieKey(movieId), movieCached);
             return movieCached;
+        } catch (BadRequestException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             // Dù thành công hay thất bai đều phải trả lock!!
             locker.unlock();
         }
     }
 
     @Override
-    public List<MovieDTO> getAllMovies() {
-       List<MovieEntity> movies = movieRepository.getAllMovies();
-       List<MovieDTO> listMovie = new ArrayList<>();
-       movies.forEach(movieEntity -> {
-           MovieDTO movieDTO = movieMapper.toMovieDTO(movieEntity);
-           listMovie.add(movieDTO);
-       });
-       return listMovie;
+    public MovieHome getMovieHome(int limit, int offset) {
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+        List<MovieEntity> latestMovies = movieRepository.findAllByOrderByMovieReleaseDateDesc(pageable).getContent();
+        return MovieHome.builder()
+                .movies(latestMovies.stream().map(movieMapper::toMovieHomeRes).collect(Collectors.toList()))
+                .build();
     }
-
 
     private String getMovieKey(int movieId) {
         return "movie:" + movieId;

@@ -23,6 +23,9 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-security:3.2.4")
     implementation("org.springframework.boot:spring-boot-starter-data-redis:3.4.1")
+
+
+    implementation("com.cloudinary:cloudinary-http44:1.39.0")
     implementation("org.springframework.boot:spring-boot-starter-mail:3.4.1")
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.springframework.kafka:spring-kafka")

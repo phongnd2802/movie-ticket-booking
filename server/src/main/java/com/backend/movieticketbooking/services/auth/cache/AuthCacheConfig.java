@@ -13,7 +13,7 @@ public class AuthCacheConfig {
     @Bean
     @Qualifier("userCacheService")
     public LocalCacheService<String, UserDetails> userCacheService() {
-        return new GuavaLocalCacheService<>(1000L, 900L);
+        return new GuavaLocalCacheService<>(500L, 900L);
     }
 
 }

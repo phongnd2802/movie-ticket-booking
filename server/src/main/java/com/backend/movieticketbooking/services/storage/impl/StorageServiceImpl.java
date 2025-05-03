@@ -10,8 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +23,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Qualifier("minioStorage")
 public class StorageServiceImpl implements StorageService {
 
     MinioClient minioClient;
@@ -48,6 +52,7 @@ public class StorageServiceImpl implements StorageService {
             throw new RuntimeException(e);
         }
     }
+
 
     @Override
     public Optional<InputStream> downloadFile(String bucketName, String objectName) {

@@ -1,5 +1,8 @@
 package com.backend.movieticketbooking.services.storage;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
@@ -14,7 +17,6 @@ public interface StorageService {
      * @return the URL of the upload file
      */
     String uploadFile(String bucketName, String objectName, InputStream inputStream, String contentType);
-
     /**
      * Downloads a file from the storage
      *

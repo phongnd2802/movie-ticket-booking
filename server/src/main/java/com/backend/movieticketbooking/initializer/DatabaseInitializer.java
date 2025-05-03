@@ -50,10 +50,16 @@ public class DatabaseInitializer {
 
     MovieRepository movieRepository;
 
-    //@PostConstruct
+    @PostConstruct
     @Transactional
     public void createAdminAccount() {
         log.info("Creating admin account");
+
+        Optional<UserEntity> existUser = userRepository.findByUserEmail("admin@backend.com");
+        if (existUser.isPresent()) {
+            log.info("User already exists");
+            return;
+        }
 
         UserEntity user = UserEntity.builder()
                 .userEmail("admin@backend.com")
@@ -131,7 +137,7 @@ public class DatabaseInitializer {
         }
     }
 
-    //@PostConstruct
+   // @PostConstruct
     @Transactional
     public void initCinemaData() {
         CinemaDTO cinema1 = cinemaService.createCinema(CinemaDTO.builder()
