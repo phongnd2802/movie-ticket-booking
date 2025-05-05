@@ -27,36 +27,6 @@ services:
     networks:
       - movie-ticket-network
 
-#  minio:
-#    container_name: minio_container
-#    image: minio/minio
-#    ports:
-#      - "9000:9000"
-#      - "9001:9001"
-#    environment:
-#      MINIO_ROOT_USER: minioadmin
-#      MINIO_ROOT_PASSWORD: minioadmin
-#    volumes:
-#      - ./minio:/data
-#    command: server /data --console-address ":9001"
-#    networks:
-#      - movie-ticket-network
-#
-#  mc-init:
-#    container_name: mc_init
-#    image: minio/mc
-#    entrypoint: |
-#      /bin/bash -c "
-#      sleep 5;
-#      /usr/bin/mc config --quiet host add dmlminio http://minio:9000 minioadmin minioadmin;
-#      /usr/bin/mc mb --quiet dmlminio/movies;
-#      /usr/bin/mc mb --quiet dmlminio/actors;
-#      "
-#    depends_on:
-#      - minio
-#    networks:
-#      - movie-ticket-network
-
   kafka:
     container_name: kafka
     image: bitnami/kafka:3.5.0
