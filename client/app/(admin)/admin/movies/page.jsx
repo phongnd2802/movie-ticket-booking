@@ -14,10 +14,10 @@ import {
 import { MovieForm } from "@/components/admin/movie-form";
 import { DeleteConfirmation } from "@/components/admin/delete-confirmation";
 import { MovieTable } from "@/components/admin/movie-table";
-import { fetchMovies, deleteMovie } from "@/lib/admin-api";
+import { deleteMovie } from "@/lib/admin-api";
+import { useMovie } from "@/hooks/useMovie";
 
 export default function MoviesPage() {
-  const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,28 +26,7 @@ export default function MoviesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
-
-  useEffect(() => {
-    loadMovies();
-  }, [currentPage, searchTerm, filterStatus]);
-
-  const loadMovies = async () => {
-    setLoading(true);
-    try {
-      const response = await fetchMovies({
-        page: currentPage - 1,
-        size: 10,
-        search: searchTerm,
-        status: filterStatus !== "all" ? filterStatus : undefined,
-      });
-      setMovies(response.content);
-      setTotalPages(response.totalPages);
-    } catch (error) {
-      console.error("Failed to fetch movies:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { movies } = useMovie();
 
   const handleAddMovie = () => {
     setSelectedMovie(null);
@@ -123,8 +102,8 @@ export default function MoviesPage() {
         </div>
 
         <MovieTable
-          movies={filteredMovies}
-          loading={loading}
+          movies={movies}
+          // loading={loading}
           onEdit={handleEditMovie}
           onDelete={handleDeleteClick}
         />

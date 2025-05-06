@@ -21,7 +21,7 @@ const handleToken = (data) => {
   const user = data.profile;
   const accessToken = data.accessToken;
   const refreshToken = data.refreshToken;
-  setCookie("at", accessToken, 2 * 60);
+  setCookie("at", accessToken, 15 * 60);
   setCookie("rt", refreshToken, 7 * 24 * 60 * 60);
   // setCookie("user", JSON.stringify(user), 7 * 24 * 60 * 60, "/"); // quên mất để làm gì rồi
   localStorage.setItem("user", JSON.stringify(user));

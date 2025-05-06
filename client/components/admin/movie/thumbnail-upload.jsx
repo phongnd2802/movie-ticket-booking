@@ -26,7 +26,7 @@ export function ThumbnailUpload({
               fill
               className="object-cover rounded-md"
             />
-            <Button
+            {/* <Button
               type="button"
               variant="destructive"
               size="icon"
@@ -34,7 +34,7 @@ export function ThumbnailUpload({
               onClick={onClearThumbnail}
             >
               <X className="h-4 w-4" />
-            </Button>
+            </Button> */}
           </div>
         ) : (
           <div

@@ -2,25 +2,67 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, AlignRight, UserRound, LogOut } from "lucide-react";
+import { Search } from "lucide-react";
 import { navItems } from "@/lib/data";
 import Navigation from "./navigation-menu";
 import MyImage from "./imagekit";
 import Image from "next/image";
-
-export default function Header({ isLogin }) {
+import { useRef } from "react";
+import axiosClient from "@/lib/auth/axiosClient";
+import { logout } from "@/endpoint/auth";
+import { deleteCookie } from "@/lib/cookie";
+import { useRouter } from "next/navigation";
+export default function Header({ isLogin: initialIsLogin = false }) {
   const [user, setUser] = useState(null);
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(initialIsLogin);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
+      setIsLoggedIn(true);
     }
   }, []);
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    setIsLoggedIn(false);
+
+  const handleLogout = async () => {
+    try {
+      const response = await axiosClient.post(logout);
+      if (response.status === 200) {
+        if (response.data.code === 20000) {
+          localStorage.removeItem("user");
+          setUser(null);
+          setIsLoggedIn(false);
+          deleteCookie("at");
+          deleteCookie("rt");
+          router.push("/");
+        }
+      } else {
+        alert("Đăng xuất không thành công");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isUserMenuOpen &&
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   return (
     <header className="flex items-center justify-center p-6 ">
@@ -83,36 +125,57 @@ export default function Header({ isLogin }) {
           </div>
         </div>
 
-        {/* Desktop auth section */}
         <div className="flex gap-4 items-center h-auto text-[#777777] max-lg:hidden hover:cursor-pointer">
           <span>
             <Search size={16} />
           </span>
 
-          {isLogin ? (
-            <div className="flex items-center gap-3">
-              {/* <div className="text-[14px] font-medium text-textOrange">
-                {user.avatar ? (
-                 <MyImage
-                    path={user.avatar}
-                    alt="avatar"
-                    width={40}
-                    height={40
-                    className="rounded-full"
-                  />
-                ) : (
-                  // <CircleUser size={24} className="rounded-full" />
-                  // Tạm thời
-                 <MyImage
-                    path={"page/ts.jpg?height=24&width=24"}
-                    alt="avatar"
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                )}
-              </div> */}
-              <span>{user.name || "Hoàng Thị Mỹ Linh"}</span>
+          {isLoggedIn ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-3 hover:text-textOrange"
+              >
+                <span>{user?.name || "Hoàng Thị Mỹ Linh"}</span>
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border">
+                  <div className="px-4 py-3 border-b">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden">
+                        <Image
+                          src="/image/volinh.jpg"
+                          alt="User avatar"
+                          width={40}
+                          height={40}
+                          className="rounded-full"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">
+                          {user?.name || "Hoàng Thị Mỹ Linh"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {user?.email || "user@example.com"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <Link
+                    href="/account"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Thông tin tài khoản
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -129,36 +192,6 @@ export default function Header({ isLogin }) {
               </div>
             </>
           )}
-        </div>
-
-        {/* Mobile auth section */}
-        <div className="hidden max-lg:flex gap-4 items-center h-auto text-[#777777] hover:cursor-pointer">
-          <div className="flex items-center gap-2 text-[14px]">
-            <span>
-              <UserRound size={20} />
-            </span>
-            {isLogin ? (
-              <div className="flex items-center gap-2">
-                <div className="text-textOrange">avatar</div>
-                <button
-                  onClick={handleLogout}
-                  className="hover:text-textOrange flex items-center gap-1"
-                >
-                  <LogOut size={14} />
-                  <span className="sr-only">Đăng xuất</span>
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="hover:text-textOrange">
-                  <Link href="/login">Đăng nhập</Link>
-                </div>
-                <span>
-                  <AlignRight size={24} />
-                </span>
-              </>
-            )}
-          </div>
         </div>
       </div>
     </header>

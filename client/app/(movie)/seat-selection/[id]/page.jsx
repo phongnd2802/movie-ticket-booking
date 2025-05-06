@@ -10,6 +10,7 @@ import { getSeats } from "@/endpoint/auth";
 import axiosClient from "@/lib/auth/axiosClient";
 import MyImage from "@/components/page/imagekit";
 import { useSeat } from "@/contexts/booking-context";
+import { toast } from "sonner";
 export default function SeatSelectionPage({ params }) {
   const { setInforBooking } = useSeat();
   const router = useRouter();
@@ -30,10 +31,12 @@ export default function SeatSelectionPage({ params }) {
       cinemaHall: cinemaHall,
       showId: showTime,
       movieName: showDetails.movieName,
+      movieImage: showDetails.movieThumbnail,
+      cartfood: [],
       totalPrice: getTotalPrice(),
     };
     setInforBooking(inf);
-    router.push("/food-selection/1");
+    router.push(`/food-selection/${id}`);
   };
 
   // Fetch show details
@@ -54,27 +57,37 @@ export default function SeatSelectionPage({ params }) {
           return await response.data;
         };
         const data = await fetchShowDetails();
-        setShowDetails(data.metadata.movie);
-        setOrtherShows(data.metadata.otherShows);
-        setShowTime(data.metadata.showStartTime);
-        setCinemaHall(data.metadata.cinemaHallName);
-        data.metadata.seats.map((seat) => {
-          if (seat.staseatStatetus === "UNAVAILABLE") {
-            setSeatUnavailable((prev) => [...prev, seat]);
-          } else if (seat.cinemaHallSeat.seatType === "COUPLE") {
-            setSeatCouple((prev) => [...prev, seat]);
-          }
-        });
+        if (data.code === 20000) {
+          setShowDetails(data.metadata.movie);
+          setOrtherShows(data.metadata.otherShows);
+          setShowTime(data.metadata.showStartTime);
+          setCinemaHall(data.metadata.cinemaHallName);
+          data.metadata.seats.map((seat) => {
+            if (seat.staseatStatetus === "UNAVAILABLE") {
+              setSeatUnavailable((prev) => [...prev, seat]);
+            } else if (seat.cinemaHallSeat.seatType === "COUPLE") {
+              setSeatCouple((prev) => [...prev, seat]);
+            }
+          });
+        } else {
+          toast.info(
+            "Suất chiếu đã chiếu hoặc đang chiếu, vui lòng chọn suất chiếu khác.",
+            {
+              description: "Vui lòng chọn suất chiếu khác.",
+            }
+          );
+          router.push("/");
+          return;
+        }
         setLoading(false);
       } catch (err) {
+        console.log("Error:", err.message);
         setError(err.message);
         setLoading(false);
       }
     };
 
-    if (id) {
-      loadData();
-    }
+    loadData();
   }, [id]);
 
   const handleSeatClick = (row, col) => {
@@ -98,7 +111,6 @@ export default function SeatSelectionPage({ params }) {
   };
 
   const isSeatCouple = (row, col) => {
-    // Couple seats are typically at the back
     return ["O", "P"].includes(row) && col % 2 === 0;
   };
 
@@ -170,10 +182,10 @@ export default function SeatSelectionPage({ params }) {
           <h2 className="text-2xl font-semibold mb-4">Lỗi</h2>
           <p className="text-red-500">{error}</p>
           <button
-            onClick={() => router.push("/booking")}
+            onClick={() => router.push("/")}
             className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
           >
-            Quay lại danh sách phim
+            Quay lại trang chủ
           </button>
         </div>
       </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createMovie, updateMovie } from "@/lib/admin-api";
+import axiosClient from "@/lib/auth/axiosClient";
+import { createMovie } from "@/endpoint/auth";
 
 const initialFormData = {
   movieName: "",
@@ -172,7 +173,7 @@ export function useMovieForm(movie, onClose) {
       newErrors.movieDirector = "Director is required";
     }
 
-    if (formData.actors.length === 0) {
+    if (formData.actors.length === 0 && movie) {
       newErrors.actors = "At least one actor is required";
     }
 
@@ -186,7 +187,7 @@ export function useMovieForm(movie, onClose) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    // Validate form before submission
     if (!validateForm()) {
       return;
     }
@@ -194,6 +195,7 @@ export function useMovieForm(movie, onClose) {
     setIsSubmitting(true);
 
     try {
+      console.log("formData", formData);
       // Create FormData object for multipart/form-data submission
       const submitData = new FormData();
 
@@ -211,10 +213,19 @@ export function useMovieForm(movie, onClose) {
 
       if (movie) {
         // Update existing movie
-        await updateMovie(movie.movieId, submitData);
+        const response = "";
       } else {
         // Create new movie
-        await createMovie(submitData);
+
+        const response = await axiosClient.post(createMovie, submitData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        if (response.status === 200) {
+          console.log("Movie created successfully:", response.data);
+        }
+        console.log("response", response);
       }
 
       onClose?.(true); // Close with refresh flag

@@ -2,21 +2,21 @@
 import axios from "axios";
 import { getRefreshToken } from "./token";
 import { setCookie } from "../cookie";
-
-const axiosClient = axios.create({
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+// {
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+// }
+const axiosClient = axios.create();
 
 axiosClient.interceptors.request.use(async (config) => {
-  const { at, rt } = await getRefreshToken();
-  if (at && rt && at !== "null" && rt !== "null") {
-    setCookie("at", at, 60 * 15);
-    setCookie("rt", rt, 24 * 60 * 60 * 7);
-    config.headers.Authorization = `Bearer ${at}`;
-    config.headers["Content-Type"] = "application/json";
+  const token = await getRefreshToken();
+  if (token) {
+    setCookie("at", token.at, 60 * 15);
+    setCookie("rt", token.rt, 24 * 60 * 60 * 7);
+    config.headers.Authorization = `Bearer ${token.at}`;
   }
+
   return config;
 });
 

@@ -6,6 +6,7 @@ const login = `${BACKEND_URL}/api/v1/auth/login`;
 const getTtl = `${BACKEND_URL}/api/v1/auth/otp-session`;
 const submitVerify = `${BACKEND_URL}/api/v1/auth/verify-otp`;
 const signUp = `${BACKEND_URL}/api/v1/auth/register`;
+const logout = `${BACKEND_URL}/api/v1/auth/logout`;
 
 // get All movie
 const getAllMovie = `${BACKEND_URL}/api/v1/movie/home?limit=10&offset=0`;
@@ -22,6 +23,16 @@ const getSeats = (id) => `${BACKEND_URL}/api/v1/show/${id}`;
 
 const getAllFood = `${BACKEND_URL}/api/v1/food`;
 
+const createMovie = `${BACKEND_URL}/api/v1/admin/movie`;
+
+const getCinemaHall = `${BACKEND_URL}/api/v1/admin/cinema/hall`;
+
+const getCinema = `${BACKEND_URL}/api/v1/admin/cinema`;
+
+const vnpay = `${BACKEND_URL}/api/v1/payment/vnpay-create`;
+
+const addGenre = `${BACKEND_URL}/api/v1/admin/movie/genre`;
+
 export {
   login,
   getTtl,
@@ -33,4 +44,10 @@ export {
   getMovieById,
   getSeats,
   getAllFood,
+  logout,
+  createMovie,
+  getCinemaHall,
+  getCinema,
+  vnpay,
+  addGenre,
 };

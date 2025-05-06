@@ -1,20 +1,18 @@
 "use client";
 
-import Image from "next/image";
 import { Star, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import MyImage from "../page/imagekit";
+import { useRouter } from "next/navigation";
 
 export function NowShowingSection({ movies }) {
-  // Add null check to prevent errors
+  const Router = useRouter();
   if (!movies || movies.length === 0) {
     return (
       <div className="space-y-4">
         <div className="flex items-center">
           <div className="h-1 w-2 bg-primary"></div>
-          <h2 className="ml-2 text-xl font-bold tracking-tight">
-            PHIM ĐANG CHIẾU
-          </h2>
         </div>
         <div className="text-center py-8 text-muted-foreground">
           Không có phim đang chiếu
@@ -29,9 +27,6 @@ export function NowShowingSection({ movies }) {
     <div className="space-y-4">
       <div className="flex items-center">
         <div className="h-1 w-2 bg-primary"></div>
-        <h2 className="ml-2 text-xl font-bold tracking-tight">
-          PHIM ĐANG CHIẾU
-        </h2>
       </div>
       <div className="space-y-4">
         {displayMovies.map((movie) => (
@@ -50,7 +45,7 @@ export function NowShowingSection({ movies }) {
           variant="outline"
           className="w-full"
           size="sm"
-          onClick={() => (window.location.href = "/movies")}
+          onClick={() => Router.push("/")}
         >
           Xem thêm
           <ChevronRight className="ml-1 h-4 w-4" />
@@ -67,8 +62,8 @@ function MovieCard({ id, title, rating, ageRating, thumbnail }) {
       onClick={() => (window.location.href = `/movie-detail/${id}`)}
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg">
-        <Image
-          part={thumbnail || "/placeholder.svg?height=450&width=300"}
+        <MyImage
+          path={thumbnail || "/placeholder.svg?height=450&width=300"}
           alt={title}
           fill
           className="object-cover transition-transform group-hover:scale-105"

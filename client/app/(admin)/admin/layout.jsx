@@ -37,8 +37,8 @@ export default function AdminLayout({ children }) {
       icon: Calendar,
     },
     {
-      name: "Users",
-      href: "/admin/users",
+      name: "Genres",
+      href: "/admin/genres",
       icon: Users,
     },
     {

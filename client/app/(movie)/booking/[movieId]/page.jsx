@@ -27,13 +27,11 @@ export default function MovieDetailPage({ params }) {
   const [selectedCast, setSelectedCast] = useState(null);
   const [activeDate, setActiveDate] = useState(null);
 
-  // Fetch movie data
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
 
-        // Fetch movie details
         const mvRp = async () => {
           const response = await axios.get(
             getMovieById(movieId),
@@ -49,6 +47,7 @@ export default function MovieDetailPage({ params }) {
           }
           return await response.data;
         };
+
         const movieResponse = await mvRp();
         console.log("movieResponse", movieResponse);
         setMovieData(movieResponse.metadata);

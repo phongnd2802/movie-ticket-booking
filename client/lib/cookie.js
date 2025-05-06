@@ -1,15 +1,11 @@
 function setCookie(name, value, time, path = "/") {
-  const d = new Date();
-  d.setTime(d.getTime() + time * 1000);
-  const expires = "expires=" + d.toUTCString();
-  document.cookie = `${name}=${value}; ${expires}; path=${path}`;
+  const maxAge = `Max-Age=${time}`;
+  document.cookie = `${name}=${value}; ${maxAge}; path=${path}`;
 }
 
-async function deleteCookie(name, path) {
-  const d = new Date();
-  d.setTime(d.getTime() - 1);
-  const expires = "expires= " + d.toUTCString();
-  document.cookie = name + "=; " + expires + "; path=" + path;
+function deleteCookie(name, path = "/") {
+  const maxAge = `Max-Age=${0}`;
+  document.cookie = name + "=; " + maxAge + "; path=" + path;
 }
 
 function getCookie(name) {

@@ -92,15 +92,7 @@ export function MovieTable({ movies, loading, onEdit, onDelete }) {
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Movie
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Duration
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Release Date
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
+
             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>
@@ -132,15 +124,7 @@ export function MovieTable({ movies, loading, onEdit, onDelete }) {
                   </div>
                 </div>
               </td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                {movie.movieDuration} min
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatDate(movie.movieReleaseDate)}
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                {getStatusBadge(movie.movieReleaseDate)}
-              </td>
+
               <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex justify-end space-x-2">
                   <Button

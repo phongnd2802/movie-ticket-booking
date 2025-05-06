@@ -5,11 +5,13 @@ const SeatContext = createContext();
 
 export const BookingProvider = ({ children }) => {
   const [inforBooking, setInforBooking] = useState({
-    seatIds: [],
-    cinemal: 0,
-    showId: 0,
-    movieName: "",
-    totalPrice: 0,
+    seatIds: [null],
+    cinemal: null,
+    showId: null,
+    movieName: null,
+    movieImage: null,
+    cartfood: [],
+    totalPrice: null,
   });
 
   return (

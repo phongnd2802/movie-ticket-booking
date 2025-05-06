@@ -3,33 +3,36 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Plus, Minus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Minus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchShowDetails } from "@/lib/api";
 import { useSeat } from "@/contexts/booking-context";
 import axios from "axios";
 import { getAllFood } from "@/endpoint/auth";
 import { getRefreshToken } from "@/lib/auth/token";
 
 export default function FoodSelectionPage({ params }) {
-  const { inforBooking } = useSeat();
+  const { inforBooking, setInforBooking } = useSeat();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { id } = params;
   const selectedSeats = searchParams.get("seats")?.split(",") || [];
 
-  const [showDetails, setShowDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cart, setCart] = useState([]);
   const [user, setUser] = useState(null);
   const [food, setFood] = useState([]);
+  const [readyToRedirect, setReadyToRedirect] = useState(false);
   useEffect(() => {
-    console.log("inforBooking:::", inforBooking);
-
-    if (inforBooking.length === 0) {
+    if (
+      !inforBooking.seatIds ||
+      !inforBooking.cinemaHall ||
+      !inforBooking.showId
+    ) {
+      setError("Vui lòng chọn ghế trước khi tiếp tục.");
       router.push(`/seat-selection/${id}`);
     }
+    setLoading(false);
   }, [selectedSeats, id]);
   useEffect(() => {
     const userCurrent = localStorage.getItem("user");
@@ -38,101 +41,35 @@ export default function FoodSelectionPage({ params }) {
     }
   }, []);
   useEffect(() => {
-    const { at, rt } = getRefreshToken();
-    if (at === "null" && rt === "null") {
-      router.push("/login?redirect=/food-selection/" + id);
-    } else {
-      const fetchFood = async () => {
-        const response = await axios.get(
-          getAllFood,
-          {},
-          {
-            headers: {
-              "content-type": "application/json",
-              Authorization: `Bearer ${at}`,
-            },
-          }
-        );
-        if (!response.status === 200) {
-          if (response.data.code === 20000) {
-            setFood(response.data.metadata);
-          }
-        }
-      };
-    }
-  });
-  // Fetch show details
-  useEffect(() => {
-    const loadData = async () => {
+    const fetchFood = async () => {
       try {
-        setLoading(true);
-        const data = await fetchShowDetails(id);
-        setShowDetails(data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error loading show details:", err);
-        setError(err.message);
-        setLoading(false);
+        const { at, rt } = await getRefreshToken();
+        const response = await axios.get(getAllFood, {
+          headers: {
+            Authorization: `Bearer ${at}`,
+          },
+        });
+        if (response.status === 200) {
+          setFood(response.data.metadata);
+        } else {
+          console.error("Error fetching food:", response.data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching food:", error);
       }
     };
-
-    if (id) {
-      loadData();
-    }
-  }, [id]);
-
-  const foodItems = [
-    {
-      id: 1,
-      name: "Combo 1 - Bắp + Nước",
-      description: "1 bắp lớn + 1 nước lớn tùy chọn",
-      price: 85000,
-      image: "/doan.jpg?height=150&width=150",
-    },
-    {
-      id: 2,
-      name: "Combo 2 - Bắp + 2 Nước",
-      description: "1 bắp lớn + 2 nước vừa tùy chọn",
-      price: 99000,
-      image: "/doan.jpg?height=150&width=150",
-    },
-    {
-      id: 3,
-      name: "Combo Gia Đình",
-      description: "2 bắp lớn + 4 nước vừa tùy chọn",
-      price: 175000,
-      image: "/doan.jpg?height=150&width=150",
-    },
-    {
-      id: 4,
-      name: "Bắp Rang Bơ (Lớn)",
-      description: "Hộp bắp rang bơ cỡ lớn",
-      price: 45000,
-      image: "/doan.jpg?height=150&width=150",
-    },
-    {
-      id: 5,
-      name: "Coca Cola (Lớn)",
-      description: "Ly nước ngọt Coca Cola cỡ lớn",
-      price: 40000,
-      image: "/doan.jpg?height=150&width=150",
-    },
-    {
-      id: 6,
-      name: "Snack Mix",
-      description: "Hỗn hợp snack khoai tây, bắp và đậu phộng",
-      price: 55000,
-      image: "/doan.jpg?height=150&width=150",
-    },
-  ];
+    fetchFood();
+  }, []);
 
   const addToCart = (item) => {
-    const existingItem = cart.find((cartItem) => cartItem.id === item.id);
+    const existingItem = cart.find(
+      (cartItem) => cartItem.foodId === item.foodId
+    );
 
     if (existingItem) {
       setCart(
         cart.map((cartItem) =>
-          cartItem.id === item.id
+          cartItem.foodId === item.foodId
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         )
@@ -143,31 +80,35 @@ export default function FoodSelectionPage({ params }) {
   };
 
   const removeFromCart = (itemId) => {
-    const existingItem = cart.find((item) => item.id === itemId);
+    const existingItem = cart.find((item) => item.foodId === itemId);
 
     if (existingItem.quantity === 1) {
-      setCart(cart.filter((item) => item.id !== itemId));
+      setCart(cart.filter((item) => item.foodId !== itemId));
     } else {
       setCart(
         cart.map((item) =>
-          item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item
+          item.foodId === itemId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
         )
       );
     }
   };
 
   const getItemQuantity = (itemId) => {
-    const item = cart.find((item) => item.id === itemId);
+    const item = cart.find((item) => item.foodId === itemId);
     return item ? item.quantity : 0;
   };
 
   const getTotalPrice = () => {
     const foodTotal = cart.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) => total + item.foodPrice * item.quantity,
       0
     );
-    const ticketPrice = selectedSeats.length * 90000; // Assuming standard price
-    return foodTotal + ticketPrice;
+    const ticketPrice = inforBooking
+      ? inforBooking.totalPrice + foodTotal
+      : inforBooking.totalPrice;
+    return ticketPrice;
   };
 
   const formatCurrency = (amount) => {
@@ -179,6 +120,22 @@ export default function FoodSelectionPage({ params }) {
       .replace(/\s/g, "")
       .replace("₫", " ₫");
   };
+
+  const handleSubmit = () => {
+    const price = getTotalPrice();
+    setInforBooking((prev) => ({
+      ...prev,
+      totalPrice: price,
+      cartfood: cart,
+    }));
+    setReadyToRedirect(true);
+  };
+
+  useEffect(() => {
+    if (readyToRedirect) {
+      router.push("/payment");
+    }
+  }, [inforBooking]);
 
   if (loading) {
     return (
@@ -208,16 +165,8 @@ export default function FoodSelectionPage({ params }) {
     );
   }
 
-  // Mock data for demonstration
-  const movieDetails = showDetails || {
-    movieName: "Địa Đạo: Mặt Trời Trong Bóng Tối",
-    movieFormat: "2D Phụ Đề",
-    movieRating: "T16",
-    showTime: "10:15",
-    showDate: "2025-04-12",
-    cinemaName: "Galaxy Nguyễn Du",
-    cinemaHall: "RẠP 2",
-  };
+  // Get movie poster URL from inforBooking or use a default
+  const moviePosterUrl = inforBooking.movieImage;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -275,64 +224,68 @@ export default function FoodSelectionPage({ params }) {
             <h2 className="text-2xl font-bold mb-6">Thức ăn & Đồ uống</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {food.map((item) => (
-                <div
-                  key={item.id}
-                  className="border rounded-lg overflow-hidden"
-                >
-                  <div className="relative aspect-square">
-                    <Image
-                      src={item.image || "/doan.jpg"}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {item.description}
-                    </p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="font-bold">
-                        {inforBooking.totalPrice} VND
-                      </span>
+              {food && food.length > 0 ? (
+                food.map((item) => (
+                  <div
+                    key={item.id}
+                    className="border rounded-lg overflow-hidden"
+                  >
+                    <div className="relative aspect-square">
+                      <Image
+                        src={item.image || "/doan.jpg"}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-medium">{item.foodName}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {item.foodDescription}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="font-bold">
+                          {inforBooking.foodPrice} VND
+                        </span>
 
-                      {getItemQuantity(item.id) > 0 ? (
-                        <div className="flex items-center gap-3">
+                        {getItemQuantity(item.id) > 0 ? (
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => removeFromCart(item.foodId)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="font-medium">
+                              {getItemQuantity(item.foodId)}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => addToCart(item)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
                           <Button
                             variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => removeFromCart(item.id)}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="font-medium">
-                            {getItemQuantity(item.id)}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
                             onClick={() => addToCart(item)}
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="mr-2 h-4 w-4" />
+                            Thêm
                           </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          onClick={() => addToCart(item)}
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Thêm
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center col-span-3">đéo có đồ ăn</div>
+              )}
             </div>
           </div>
 
@@ -340,15 +293,38 @@ export default function FoodSelectionPage({ params }) {
           <div className="lg:w-[300px]">
             <div className="border rounded-lg overflow-hidden">
               <div className="p-4 bg-gray-50">
-                <h3 className="font-semibold">Thông tin đặt vé</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center mb-4 w-full">
+                    <span className="text-sm text-gray-600">
+                      Thời gian giữ ghế:
+                    </span>
+                    <div className="flex items-center text-orange-500 font-medium">
+                      <Clock className="h-4 w-4 mr-1" />
+                      <span>06:30</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="p-4">
                 <div className="space-y-4">
+                  {/* Movie poster */}
+                  <div className="relative w-full h-[180px] rounded-md overflow-hidden mb-3">
+                    <Image
+                      src={moviePosterUrl || "/placeholder.svg"}
+                      alt={inforBooking.movieName || "Movie poster"}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                      <span className="text-xs font-medium text-white px-2 py-1 bg-red-600 rounded">
+                        {inforBooking.movieRating || "T16"}
+                      </span>
+                    </div>
+                  </div>
+
                   <div>
                     <h4 className="font-medium">{inforBooking.movieName}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {movieDetails.movieFormat}
-                    </p>
+                    <p className="text-sm text-muted-foreground">2D Phụ Đề</p>
                   </div>
 
                   <div className="space-y-2">
@@ -372,14 +348,14 @@ export default function FoodSelectionPage({ params }) {
                       <div className="space-y-2">
                         {cart.map((item) => (
                           <div
-                            key={item.id}
+                            key={item.foodId}
                             className="flex justify-between text-sm"
                           >
                             <span>
-                              {item.name} x{item.quantity}
+                              {item.foodName} x{item.quantity}
                             </span>
                             <span>
-                              {formatCurrency(item.price * item.quantity)}
+                              {formatCurrency(item.foodPrice * item.quantity)}
                             </span>
                           </div>
                         ))}
@@ -395,7 +371,7 @@ export default function FoodSelectionPage({ params }) {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Tổng cộng</span>
                       <span className="font-bold text-lg text-primary">
-                        {inforBooking.totalPrice} VND
+                        {formatCurrency(getTotalPrice())}
                       </span>
                     </div>
                   </div>
@@ -416,15 +392,7 @@ export default function FoodSelectionPage({ params }) {
             <ChevronLeft className="mr-2 h-4 w-4" />
             Quay lại
           </Button>
-          <Button
-            onClick={() =>
-              router.push(
-                `/payment/${id}?seats=${selectedSeats.join(
-                  ","
-                )}&food=${encodeURIComponent(JSON.stringify(cart))}`
-              )
-            }
-          >
+          <Button onClick={() => handleSubmit()}>
             Tiếp tục
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>

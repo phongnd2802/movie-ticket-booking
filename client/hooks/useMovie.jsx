@@ -1,15 +1,13 @@
 "use client";
-import { getAllMovie, refeshToken } from "@/endpoint/auth";
-import { deleteCookie, getCookie, setCookie } from "@/lib/cookie";
+import { getAllMovie } from "@/endpoint/auth";
+import { getCookie } from "@/lib/cookie";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { getRefreshToken } from "@/lib/auth/token";
 import { useRouter } from "next/navigation";
 
 export function useMovie() {
   const [movies, setMovies] = useState([]);
   const [isAccess, setIsAccess] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const checkAccount = () => {
@@ -38,11 +36,6 @@ export function useMovie() {
           if (response.data.code === 20000) {
             setMovies(response.data.metadata.movies);
           }
-        } else {
-          localStorage.removeItem("user");
-          deleteCookie("rt");
-          deleteCookie("at");
-          router.push("/");
         }
       };
       fetchMovies();

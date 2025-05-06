@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -5,11 +6,65 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Clock, ChevronDown } from "lucide-react";
-
+import { useSeat } from "@/contexts/booking-context";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import TicketConfirmationModal from "@/components/booking/ticket-confirmation-modal";
+import { useState } from "react";
+import axios from "axios";
+import axiosClient from "@/lib/auth/axiosClient";
+import { vnpay } from "@/endpoint/auth";
 export default function CheckoutPage() {
+  const { inforBooking } = useSeat();
+  const moviePosterUrl = inforBooking.movieImage || "/placeholder.svg";
+  const [openModal, setOpenModal] = useState(false);
+  const router = useRouter();
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    })
+      .format(amount)
+      .replace(/\s/g, "")
+      .replace("₫", " ₫");
+  };
+
+  useEffect(() => {
+    if (
+      !inforBooking.seatIds ||
+      !inforBooking.cinemaHall ||
+      !inforBooking.showId
+    ) {
+      router.push(`/`);
+    }
+  }, []);
+  const handleModalClose = () => {
+    setOpenModal(false);
+  };
+  const handleModalOpen = () => {
+    setOpenModal(true);
+  };
+
+  const handlePayment = () => {
+    const paymentData = {
+      bookingId: "1",
+      amount: inforBooking.seatsId.length,
+      bankCode: "123456",
+    };
+    const response = axiosClient.post(vnpay, paymentData);
+    if (response.status === 200) {
+      if (response.data.code === 20000) {
+        const vnpUrl = response.data.metadata.vnpUrl;
+        window.location.href = vnpUrl;
+      } else {
+        alert("Thanh toán không thành công");
+      }
+    }
+  };
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Link href="/" className="flex items-center">
           <Image
@@ -24,8 +79,6 @@ export default function CheckoutPage() {
           Huỷ giao dịch ×
         </button>
       </div>
-
-      {/* Checkout Steps */}
 
       <div className="border-b">
         <div className="container px-4">
@@ -50,6 +103,13 @@ export default function CheckoutPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {openModal && (
+          <TicketConfirmationModal
+            isOpen={handleModalOpen}
+            onClose={handleModalClose}
+            ticketInfo={inforBooking}
+          />
+        )}
         {/* Left Column - Payment Options */}
         <div className="lg:col-span-2">
           <div className="mb-8">
@@ -196,64 +256,104 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="border-t border-b py-4 my-4">
-              <div className="flex gap-4">
-                <Image
-                  src="/abyssal-dread.png"
-                  alt="Movie Poster"
-                  width={100}
-                  height={150}
-                  className="w-24 h-auto rounded-md"
-                />
-                <div>
-                  <h3 className="font-medium">
-                    Địa Đạo: Mặt Trời Trong Bóng Tối
-                  </h3>
-                  <div className="flex gap-2 mt-2">
-                    <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                      2D Phụ Đề
-                    </span>
-                    <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded">
-                      T16
-                    </span>
+            <div className="lg:w-[300px]">
+              <div className="border rounded-lg overflow-hidden">
+                <div className="p-4 bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Thông tin đặt vé</h3>
                   </div>
-                  <div className="mt-4">
-                    <p className="text-sm">Galaxy Tân Bình - RẠP 1</p>
-                    <p className="text-sm">
-                      Suất: <span className="font-medium">11:45</span> - Thứ Tư,
-                      30/04/2025
-                    </p>
+                </div>
+                <div className="p-4">
+                  <div className="space-y-4">
+                    {/* Movie poster */}
+                    <div className="relative w-full h-[180px] rounded-md overflow-hidden mb-3">
+                      <Image
+                        src={moviePosterUrl || "/placeholder.svg"}
+                        alt={inforBooking.movieName || "Movie poster"}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                        <span className="text-xs font-medium text-white px-2 py-1 bg-red-600 rounded">
+                          {inforBooking.movieRating || "T16"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium">{inforBooking.movieName}</h4>
+                      <p className="text-sm text-muted-foreground">2D Phụ Đề</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Rạp:</span>
+                        <span>{inforBooking.cinemaHall}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Suất:</span>
+                        <span>{inforBooking.showId}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Ghế:</span>
+                        <span>{inforBooking.seatIds.join(", ")}</span>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium mb-2">Thức ăn & Đồ uống</h4>
+                      {inforBooking.cartfood &&
+                      inforBooking.cartfood.length > 0 ? (
+                        <div className="space-y-2">
+                          {inforBooking.cartfood.map((item) => (
+                            <div
+                              key={item.foodId}
+                              className="flex justify-between text-sm"
+                            >
+                              <span>
+                                {item.foodName} x{item.quantity}
+                              </span>
+                              <span>
+                                {formatCurrency(item.foodPrice * item.quantity)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Chưa chọn thức ăn
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Tổng cộng</span>
+                        <span className="font-bold text-lg text-primary">
+                          {formatCurrency(inforBooking.totalPrice)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <div className="space-y-2 py-2">
-              <div className="flex justify-between text-sm">
-                <span>1x VÉ 2D NGƯỜI LỚN LẺ-MEMBER</span>
-                <span>110.000 đ</span>
-              </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Ghế: D12</span>
-              </div>
-            </div>
-
-            <div className="border-t pt-4 mt-4">
-              <div className="flex justify-between font-medium">
-                <span>Tổng cộng</span>
-                <span className="text-orange-500">110.000 đ</span>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-4">
-              <Button variant="outline" className="flex-1">
-                Quay lại
-              </Button>
-              <Button className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">
-                Thanh Toán
-              </Button>
-            </div>
           </div>
+        </div>
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 border-t bg-white p-4">
+        <div className="container flex items-center justify-between">
+          <Button variant="outline" onClick={() => router.push(`/`)}>
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Quay lại
+          </Button>
+          <Button
+            onClick={handleModalOpen}
+            className="bg-orange-500 text-white"
+          >
+            Thanh toán
+            <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

@@ -17,7 +17,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-12 items-center">
           <Slide />
           <Section>
-            <SubNav title="PHIM" nav1="Đang chiếu" nav2="Sắp chiếu" />
+            <SubNav title="PHIM" />
             <div className="w-full mt-4">
               {movies && movies.length > 0 ? (
                 <ListMovie movies={movies} />
@@ -36,11 +36,7 @@ export default function HomePage() {
       <div className="w-full h-0.5 bg-black/5" aria-hidden="true"></div>
 
       <Section id="reviews">
-        <SubNav
-          title="GÓC ĐIỆN ẢNH"
-          nav1="Bình luận phim"
-          nav2="Blog điện ảnh"
-        />
+        <SubNav title="GÓC ĐIỆN ẢNH" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {/* Featured Review */}
