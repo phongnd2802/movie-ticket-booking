@@ -193,6 +193,7 @@ public class ShowServiceImpl implements ShowService {
 
     private MovieGetShowResponse buildMovieGetShowResponse(MovieEntity movieEntity) {
         return MovieGetShowResponse.builder()
+                .movieId(movieEntity.getMovieId())
                 .movieAge(movieEntity.getMovieAge())
                 .movieName(movieEntity.getMovieName())
                 .movieThumbnail(movieEntity.getMovieThumbnail())
