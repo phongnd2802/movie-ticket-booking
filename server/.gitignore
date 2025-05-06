@@ -35,3 +35,11 @@ out/
 
 ### VS Code ###
 .vscode/
+environment/kafka
+environment/minio
+environment/postgres
+environment/prometheus/data
+environment/grafana
+scripts/venv
+benchmark
+jmeter.log
