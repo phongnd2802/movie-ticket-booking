@@ -19,8 +19,8 @@ public class PaymentEntity extends BaseEntity {
     @Id
     String transactionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id", nullable = false, unique = true)
     BookingEntity booking;
 
     BigDecimal amount;

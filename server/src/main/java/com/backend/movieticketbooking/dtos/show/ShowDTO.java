@@ -10,5 +10,4 @@ import lombok.Data;
 public class ShowDTO {
     private int showId;
     private String showStartTime;
-
 }
