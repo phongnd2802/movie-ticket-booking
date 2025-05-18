@@ -20,6 +20,8 @@ public class FoodEntity extends BaseEntity {
 
     String foodName;
 
+    String foodThumbnail;
+
     String foodDescription;
 
     int foodPrice;
