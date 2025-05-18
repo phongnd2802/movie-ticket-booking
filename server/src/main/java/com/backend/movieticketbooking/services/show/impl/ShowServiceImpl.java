@@ -182,6 +182,7 @@ public class ShowServiceImpl implements ShowService {
             ShowSeatDTO showSeat = ShowSeatDTO.builder()
                     .showSeatId(seatEntity.getShowSeatId())
                     .seatState(seatEntity.getSeatState())
+                    .seatPrice(seatEntity.getSeatPrice())
                     .cinemaHallSeat(cinemaHallSeatMapper.toCinemaHallSeatDTO(seatEntity.getCinemaHallSeat()))
                     .build();
 

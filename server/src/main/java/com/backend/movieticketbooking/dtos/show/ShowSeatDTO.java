@@ -15,6 +15,6 @@ public class ShowSeatDTO {
     int showSeatId;
 
     SeatStateEnum seatState;
-
+    int seatPrice;
     CinemaHallSeatDTO cinemaHallSeat;
 }
