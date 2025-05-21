@@ -7,13 +7,48 @@ import Movie from "@/components/page/movie";
 import Footer from "@/components/page/footer";
 import Section from "@/components/page/section";
 import { useMovie } from "@/hooks/useMovie";
+import { useState } from "react";
+import axios from "axios";
+import { searchURL } from "@/endpoint/auth";
 
 export default function HomePage() {
-  const { movies, isAccess } = useMovie();
+  const { movies, isAccess, setMovies } = useMovie();
+  const [search, setSearch] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const handleChangeText = (event) => {
+    event.preventDefault();
+    setSearch(event.target.value);
+  };
+
+  const handleSearch = async () => {
+    if (search.trim()) {
+      setIsSearchOpen(false);
+      console.log("clgt");
+      const response = await axios.post(searchURL, search, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.status === 200 && response.data.code === 20000) {
+        setMovies(response.data.movie);
+      }
+      console.log("vô đây là oke rồi ");
+      setSearchQuery("");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center gap-16">
       <div className="w-full">
-        <Header isLogin={isAccess} />
+        <Header
+          isLogin={isAccess}
+          onChange={handleChangeText}
+          search={search}
+          handleSearch={handleSearch}
+          isSearchOpen={isSearchOpen}
+          setIsSearchOpen={setIsSearchOpen}
+        />
         <div className="flex flex-col gap-12 items-center">
           <Slide />
           <Section>

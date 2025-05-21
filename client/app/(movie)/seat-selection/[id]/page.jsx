@@ -83,7 +83,7 @@ export default function SeatSelectionPage({ params }) {
       setSelectedSeats(selectedSeats.filter((s) => s.id !== seatName));
     } else {
       // Determine price based on seat type
-      const price = seat.cinemaHallSeat.seatType === "COUPLE" ? 180000 : 90000;
+      const price = seat.cinemaHallSeat.seatType === "COUPLE" ? 90000 : 45000;
 
       setSelectedSeats([
         ...selectedSeats,
@@ -178,60 +178,69 @@ export default function SeatSelectionPage({ params }) {
       return;
     }
 
-    const inf = {
+    // Cập nhật thông tin đặt vé
+    setInforBooking({
       seatIds: selectedSeats,
-      cinemaHall: cinemaHall,
+      cinemaHall,
       showId: showTime,
       movieName: showDetails.movieName,
       movieImage: showDetails.movieThumbnail,
       cartfood: [],
       totalPrice: getTotalPrice(),
-    };
+    });
 
-    setInforBooking(inf);
-    const fetchBooking = async () => {
-      try {
-        const requestBody = {
+    try {
+      // Gửi yêu cầu đặt ghế
+      const bookingResponse = await axiosClient.post(
+        booking,
+        {
           seats: selectedSeats.map((seat) => seat.showSeatId),
           showId: showId,
-        };
-        //Send the request to the specified API endpoint
-        const response = await axiosClient.post(booking, requestBody, {
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-        });
-
-        console.log("Booking response:", response);
-
-        if (response.status === 200) {
-          if (response.data.code === 20000) {
-            return response.data;
-          } else {
-            toast.error(`Lỗi: ${response.data.message || "Không thể đặt ghế"}`);
-          }
         }
-      } catch (error) {
-        console.error("Error booking seats:", error);
-        toast.error("Có lỗi xảy ra khi đặt ghế. Vui lòng thử lại.");
-      }
-    };
-    const databooking = await fetchBooking();
-    const paymentRequest = {
-      bookingId: (databooking.metadata.bookingId = ""),
-      amount: getTotalPrice(),
-    };
-    console.log("paymentRequest:::", paymentRequest);
+      );
 
-    const payment = async () => {
-      const response = await axiosClient.post(paymentBooking, paymentRequest, {
-        headers: {
-          "Content-Type": "application/json",
+      const { status, data } = bookingResponse;
+      console.log(bookingResponse);
+
+      if (status !== 200 || data.code !== 20000) {
+        toast.error(`Lỗi đặt vé: ${data.message || "Không thể đặt ghế"}`);
+        return;
+      }
+
+      const bookingId = data.metadata?.bookingId + "";
+
+      if (!bookingId) {
+        toast.error("Không nhận được bookingId từ server.");
+        return;
+      }
+
+      // Gửi yêu cầu thanh toán
+      const paymentResponse = await axiosClient.post(
+        paymentBooking,
+        {
+          bookingId: bookingId,
+          amount: getTotalPrice(),
         },
-      });
-      console.log("response:::", response);
-    };
-    payment();
+        {}
+      );
+      console.log(paymentResponse);
+      if (paymentResponse.status === 200) {
+        if (paymentResponse.data.code === 20000) {
+          router.push(paymentResponse.data.metadata);
+          toast.success("Đặt vé và thanh toán thành công!");
+        } else {
+          console.error("Lỗi khi đặt ghế hoặc thanh toán:", error);
+        }
+      }
+    } catch (error) {
+      console.error("Lỗi khi đặt ghế hoặc thanh toán:", error);
+      toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+    }
   };
 
   // Loading state

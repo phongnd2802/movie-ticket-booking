@@ -23,6 +23,7 @@ public class PaymentController {
     @PostMapping("/vnpay-create")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ApiResponse<String> createPayment(@RequestBody PaymentDTO paymentRequest, HttpServletRequest request) {
+        System.out.println(paymentRequest);
         String paymentUrl = paymentService.createPaymentUrl(paymentRequest, request);
         return ApiResponse.success(paymentUrl);
     }

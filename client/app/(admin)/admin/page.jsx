@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { fetchMovies } from "@/lib/admin-api";
+import { useMovie } from "@/hooks/useMovie";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -21,6 +22,7 @@ export default function AdminDashboard() {
     activeMovies: 0,
   });
   const [recentMovies, setRecentMovies] = useState([]);
+  const { movies } = useMovie();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function AdminDashboard() {
         }).length;
 
         setStats({
-          totalMovies: allMovies.totalElements,
+          totalMovies: movies.length,
           upcomingMovies: upcoming,
           activeMovies: active,
         });
@@ -86,7 +88,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? "..." : stats.totalMovies}
+              {loading ? "..." : movies.length}
             </div>
             <p className="text-xs text-muted-foreground">Movies in database</p>
           </CardContent>
@@ -143,7 +145,7 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {recentMovies.map((movie) => (
+              {movies.map((movie) => (
                 <div
                   key={movie.movieId}
                   className="flex items-center justify-between border-b pb-2"

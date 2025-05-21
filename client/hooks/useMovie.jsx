@@ -42,5 +42,5 @@ export function useMovie() {
       console.log(err.message);
     }
   }, []);
-  return { movies, isAccess };
+  return { movies, isAccess, setMovies };
 }
