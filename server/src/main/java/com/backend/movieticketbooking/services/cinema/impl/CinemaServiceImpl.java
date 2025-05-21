@@ -5,6 +5,7 @@ import com.backend.movieticketbooking.dtos.cinema.CinemaDTO;
 import com.backend.movieticketbooking.dtos.cinema.CinemaHallDTO;
 import com.backend.movieticketbooking.dtos.cinema.request.CreateCinemaHallRequest;
 import com.backend.movieticketbooking.dtos.cinema.response.CreateCinemaHallResponse;
+import com.backend.movieticketbooking.dtos.cinema.response.GetCinemaHallResponse;
 import com.backend.movieticketbooking.entities.cinema.CinemaEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallEntity;
 import com.backend.movieticketbooking.entities.cinema.CinemaHallSeatEntity;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -135,6 +137,42 @@ public class CinemaServiceImpl implements CinemaService {
                 .cinemaHallName(cinemaHall.getCinemaHallName())
                 .cinemaHallId(cinemaHall.getCinemaHallId())
                 .cinemaHallSeats(cinemaHallSeatMapper.toCinemaHallSeatDTO(cinemaHall.getCinemaHallSeats()))
+                .build();
+    }
+
+    @Override
+    public List<GetCinemaHallResponse> getHallsByCinemaId(Integer cinemaId) {
+        Optional<CinemaEntity> cinemaEntity = cinemaRepository.findById(cinemaId);
+        if (cinemaEntity.isEmpty()) {
+            throw new BadRequestException(ErrorCode.CINEMA_NOT_FOUND);
+        }
+
+        List<CinemaHallEntity> halls = cinemaHallRepository.findByCinema(cinemaEntity.get());
+
+        return halls.stream().map(this::buildGetCinemaHallResponse).collect(Collectors.toList());
+    }
+
+    private GetCinemaHallResponse buildGetCinemaHallResponse(CinemaHallEntity cinemaHall) {
+        return GetCinemaHallResponse.builder()
+                .cinemaHallId(cinemaHall.getCinemaHallId())
+                .cinemaHallName(cinemaHall.getCinemaHallName())
+                .build();
+    }
+
+    @Override
+    public List<CinemaDTO> getAllCinemas() {
+        List<CinemaEntity> cinemas = cinemaRepository.findAll();
+        return cinemas.stream().map(this::buildCinemaDTO).collect(Collectors.toList());
+    }
+
+    private CinemaDTO buildCinemaDTO(CinemaEntity cinema) {
+        return CinemaDTO.builder()
+                .cinemaId(cinema.getCinemaId())
+                .cinemaName(cinema.getCinemaName())
+                .cinemaStreet(cinema.getCinemaStreet())
+                .cinemaWard(cinema.getAddress().getWard())
+                .cinemaDistrict(cinema.getAddress().getDistrict())
+                .cinemaProvince(cinema.getAddress().getProvince())
                 .build();
     }
 

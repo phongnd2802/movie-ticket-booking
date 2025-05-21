@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -58,5 +60,8 @@ public class ActorServiceImpl implements ActorService {
         return actorMapper.toActorDTO(actor);
     }
 
-
+    @Override
+    public List<ActorDTO> getAllActors() {
+        return actorRepository.findAll().stream().map(actorMapper::toActorDTO).collect(Collectors.toList());
+    }
 }

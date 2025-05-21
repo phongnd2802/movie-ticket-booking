@@ -14,7 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -39,5 +41,10 @@ public class GenreServiceImpl implements GenreService {
         genreRepository.save(genre);
 
         return genreMapper.toGenreDTO(genre);
+    }
+
+    @Override
+    public List<GenreDTO> getAllGenres() {
+        return genreRepository.findAll().stream().map(genreMapper::toGenreDTO).collect(Collectors.toList());
     }
 }
