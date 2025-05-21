@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 public class VNPayServiceImpl implements PaymentService {
     private static final String VNP_VERSION = "2.1.0";
     private static final String VNP_COMMAND = "pay";
-    private static final String VNP_TMN_CODE = "E2LMK37L";
+    private static final String VNP_TMN_CODE = "xxxxxx";
     private static final String ORDER_TYPE = "other";
     private static final String CURRENCY_CODE = "VND";
     private static final String LOCALE = "vn";
@@ -67,7 +67,7 @@ public class VNPayServiceImpl implements PaymentService {
     @Override
     public String createPaymentUrl(PaymentDTO paymentRequest, HttpServletRequest request) {
         Map<String, String> params = initializeParameters(paymentRequest, request);
-        Optional<BookingEntity> bookingEntity = bookingRepository.findById(paymentRequest.getBookingId());
+        Optional<BookingEntity> bookingEntity = bookingRepository.findByBookingId((paymentRequest.getBookingId()));
         if (bookingEntity.isEmpty()) {
             throw new BadRequestException(ErrorCode.BOOKING_NOT_FOUND);
         }
