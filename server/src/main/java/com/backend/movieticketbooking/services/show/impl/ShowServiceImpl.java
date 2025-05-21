@@ -181,6 +181,7 @@ public class ShowServiceImpl implements ShowService {
         showSeatEntities.forEach(seatEntity -> {
             ShowSeatDTO showSeat = ShowSeatDTO.builder()
                     .showSeatId(seatEntity.getShowSeatId())
+                    .showSeatPrice(seatEntity.getSeatPrice())
                     .seatState(seatEntity.getSeatState())
                     .cinemaHallSeat(cinemaHallSeatMapper.toCinemaHallSeatDTO(seatEntity.getCinemaHallSeat()))
                     .build();
