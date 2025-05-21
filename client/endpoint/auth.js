@@ -33,6 +33,10 @@ const vnpay = `${BACKEND_URL}/api/v1/payment/vnpay-create`;
 
 const addGenre = `${BACKEND_URL}/api/v1/admin/movie/genre`;
 
+const booking = `${BACKEND_URL}/api/v1/booking`;
+
+const paymentBooking = `${BACKEND_URL}/api/v1/payment/vnpay-create`;
+
 export {
   login,
   getTtl,
@@ -50,4 +54,6 @@ export {
   getCinema,
   vnpay,
   addGenre,
+  booking,
+  paymentBooking,
 };

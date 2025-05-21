@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/page/header";
-
-import { getSeats } from "@/endpoint/auth";
-import axiosClient from "@/lib/auth/axiosClient";
 import MyImage from "@/components/page/imagekit";
 import { useSeat } from "@/contexts/booking-context";
 import { toast } from "sonner";
+import axios from "axios";
+import { booking, getSeats, paymentBooking } from "@/endpoint/auth";
+import axiosClient from "@/lib/auth/axiosClient";
+
 export default function SeatSelectionPage({ params }) {
   const { setInforBooking } = useSeat();
   const router = useRouter();
@@ -19,56 +20,37 @@ export default function SeatSelectionPage({ params }) {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [ortherShows, setOrtherShows] = useState([]);
+  const [otherShows, setOtherShows] = useState([]);
   const [showTime, setShowTime] = useState(null);
   const [cinemaHall, setCinemaHall] = useState(null);
-  const [seatUnavailable, setSeatUnavailable] = useState([]);
-  const [seatCouple, setSeatCouple] = useState([]);
+  const [seats, setSeats] = useState([]);
+  const [showId, setShowId] = useState(null);
 
-  const handleSubmit = () => {
-    const inf = {
-      seatIds: selectedSeats.map((seat) => seat.id),
-      cinemaHall: cinemaHall,
-      showId: showTime,
-      movieName: showDetails.movieName,
-      movieImage: showDetails.movieThumbnail,
-      cartfood: [],
-      totalPrice: getTotalPrice(),
-    };
-    setInforBooking(inf);
-    router.push(`/food-selection/${id}`);
-  };
-
-  // Fetch show details
+  // Fetch seat data
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const fetchShowDetails = async () => {
-          const response = await axiosClient.get(getSeats(id));
-          if (!response.status === 200) {
-            throw new Error("Failed to fetch show details");
-          } else {
-            if (response.data.code !== 20000) {
-              console.log("Error:", response.data.message);
-            }
+        const fetchSeatDetails = async () => {
+          try {
+            // In a real application, this would be an API call to your backend
+            const response = await axiosClient.get(getSeats(id));
+            return response.data;
+          } catch (error) {
+            console.error("Error fetching seat data:", error);
+            throw new Error("Failed to fetch seat details");
           }
-
-          return await response.data;
         };
-        const data = await fetchShowDetails();
-        if (data.code === 20000) {
-          setShowDetails(data.metadata.movie);
-          setOrtherShows(data.metadata.otherShows);
-          setShowTime(data.metadata.showStartTime);
-          setCinemaHall(data.metadata.cinemaHallName);
-          data.metadata.seats.map((seat) => {
-            if (seat.staseatStatetus === "UNAVAILABLE") {
-              setSeatUnavailable((prev) => [...prev, seat]);
-            } else if (seat.cinemaHallSeat.seatType === "COUPLE") {
-              setSeatCouple((prev) => [...prev, seat]);
-            }
-          });
+
+        const seatData = await fetchSeatDetails();
+
+        if (seatData.code === 20000) {
+          setSeats(seatData.metadata.seats);
+          setCinemaHall(seatData.metadata.cinemaHallName);
+          setShowDetails(seatData.metadata.movie);
+          setOtherShows(seatData.metadata.otherShows);
+          setShowTime(seatData.metadata.showStartTime);
+          setShowId(seatData.metadata.showId);
         } else {
           toast.info(
             "Suất chiếu đã chiếu hoặc đang chiếu, vui lòng chọn suất chiếu khác.",
@@ -79,39 +61,44 @@ export default function SeatSelectionPage({ params }) {
           router.push("/");
           return;
         }
+
         setLoading(false);
       } catch (err) {
-        console.log("Error:", err.message);
+        console.error("Error:", err.message);
         setError(err.message);
         setLoading(false);
       }
     };
 
     loadData();
-  }, [id]);
+  }, [id, router]);
 
-  const handleSeatClick = (row, col) => {
-    const seatId = `${row}${col}`;
-    const isSeatSelected = selectedSeats.some((seat) => seat.id === seatId);
+  const handleSeatClick = (seat) => {
+    if (!seat || seat.seatState === "UNAVAILABLE") return;
+
+    const seatName = seat.cinemaHallSeat.seatName;
+    const isSeatSelected = selectedSeats.some((s) => s.id === seatName);
 
     if (isSeatSelected) {
-      setSelectedSeats(selectedSeats.filter((seat) => seat.id !== seatId));
+      setSelectedSeats(selectedSeats.filter((s) => s.id !== seatName));
     } else {
-      const price = row === "P" ? 180000 : 90000;
-      setSelectedSeats([...selectedSeats, { id: seatId, row, col, price }]);
+      // Determine price based on seat type
+      const price = seat.cinemaHallSeat.seatType === "COUPLE" ? 180000 : 90000;
+
+      setSelectedSeats([
+        ...selectedSeats,
+        {
+          id: seatName,
+          price,
+          showSeatId: seat.showSeatId,
+          type: seat.cinemaHallSeat.seatType,
+        },
+      ]);
     }
   };
 
-  const isSeatSelected = (row, col) => {
-    return selectedSeats.some((seat) => seat.id === `${row}${col}`);
-  };
-
-  const isSeatUnavailable = (row, col) => {
-    return seatUnavailable.includes(`${row}${col}`);
-  };
-
-  const isSeatCouple = (row, col) => {
-    return ["O", "P"].includes(row) && col % 2 === 0;
+  const isSeatSelected = (seatName) => {
+    return selectedSeats.some((seat) => seat.id === seatName);
   };
 
   const getTotalPrice = () => {
@@ -146,23 +133,108 @@ export default function SeatSelectionPage({ params }) {
     }/${date.getFullYear()}`;
   };
 
-  const formatTime = (timeString) => {
-    const time = new Date(`2000-01-01T${timeString}`);
-    return time.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const handleShowTimeClick = async (showStartTime, showId) => {
+    try {
+      setLoading(true);
+      const showStartTimeDate =
+        showStartTime.split("T")[0] +
+        "T" +
+        showStartTime.split("T")[1].slice(0, -3);
+      setShowTime(showStartTimeDate);
+      setShowId(showId);
+
+      // Fetch seat information for the selected show
+      const fetchSeatDetails = async (showId) => {
+        try {
+          const response = await axios.get(getSeats(showId));
+          return response.data;
+        } catch (error) {
+          console.error("Error fetching seat data:", error);
+          throw new Error("Failed to fetch seat details");
+        }
+      };
+
+      const seatData = await fetchSeatDetails(showId);
+
+      if (seatData.code === 20000) {
+        setSeats(seatData.metadata.seats);
+        setOtherShows(seatData.metadata.otherShows);
+        setSelectedSeats([]);
+      } else {
+        toast.error("Không thể tải thông tin ghế ngồi");
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error("Error:", err.message);
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
-  const handleShowTimeClick = (showStartTime) => {
-    const showStartTimeDate =
-      showStartTime.split("T")[0] +
-      "T" +
-      showStartTime.split("T")[1].slice(0, -3);
-    setShowTime(showStartTimeDate);
+  const handleSubmit = async () => {
+    if (selectedSeats.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một ghế");
+      return;
+    }
+
+    const inf = {
+      seatIds: selectedSeats,
+      cinemaHall: cinemaHall,
+      showId: showTime,
+      movieName: showDetails.movieName,
+      movieImage: showDetails.movieThumbnail,
+      cartfood: [],
+      totalPrice: getTotalPrice(),
+    };
+
+    setInforBooking(inf);
+    const fetchBooking = async () => {
+      try {
+        const requestBody = {
+          seats: selectedSeats.map((seat) => seat.showSeatId),
+          showId: showId,
+        };
+        //Send the request to the specified API endpoint
+        const response = await axiosClient.post(booking, requestBody, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("Booking response:", response);
+
+        if (response.status === 200) {
+          if (response.data.code === 20000) {
+            return response.data;
+          } else {
+            toast.error(`Lỗi: ${response.data.message || "Không thể đặt ghế"}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error booking seats:", error);
+        toast.error("Có lỗi xảy ra khi đặt ghế. Vui lòng thử lại.");
+      }
+    };
+    const databooking = await fetchBooking();
+    const paymentRequest = {
+      bookingId: (databooking.metadata.bookingId = ""),
+      amount: getTotalPrice(),
+    };
+    console.log("paymentRequest:::", paymentRequest);
+
+    const payment = async () => {
+      const response = await axiosClient.post(paymentBooking, paymentRequest, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("response:::", response);
+    };
+    payment();
   };
 
-  // loading
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -174,7 +246,7 @@ export default function SeatSelectionPage({ params }) {
     );
   }
 
-  // error
+  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -192,10 +264,37 @@ export default function SeatSelectionPage({ params }) {
     );
   }
 
-  // Generate rows A-P
-  const rows = "ABCDEFGHIJKLMNO".split("");
+  // Find all regular seats (rows A-N)
+  const regularSeats = seats.filter(
+    (seat) =>
+      !seat.cinemaHallSeat.seatName.startsWith("O") ||
+      seat.cinemaHallSeat.seatType !== "COUPLE"
+  );
 
-  const columns = Array.from({ length: 16 }, (_, i) => i + 1);
+  // Find all couple seats in row O
+  const coupleSeats = seats.filter(
+    (seat) =>
+      seat.cinemaHallSeat.seatName.startsWith("O") &&
+      seat.cinemaHallSeat.seatType === "COUPLE"
+  );
+
+  // Organize regular seats by row and column for display
+  const seatsByRow = {};
+  regularSeats.forEach((seat) => {
+    const seatName = seat.cinemaHallSeat.seatName;
+    // Extract row letter (could be one or more characters)
+    const rowMatch = seatName.match(/^([A-Z]+)/i);
+    if (rowMatch) {
+      const row = rowMatch[1];
+      if (!seatsByRow[row]) {
+        seatsByRow[row] = [];
+      }
+      seatsByRow[row].push(seat);
+    }
+  });
+
+  // Sort rows alphabetically
+  const sortedRows = Object.keys(seatsByRow).sort();
 
   return (
     <div className="min-h-screen bg-background">
@@ -233,22 +332,27 @@ export default function SeatSelectionPage({ params }) {
             <div className="mb-6 flex items-center gap-4">
               <div className="font-medium">Đổi suất chiếu</div>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {ortherShows &&
-                  ortherShows.map((showStartTime) => (
+                {otherShows && otherShows.length > 0 ? (
+                  otherShows.map((show) => (
                     <button
-                      key={showStartTime.showId}
+                      key={show.showId}
                       className={`px-4 py-2 text-sm rounded-md min-w-[60px] ${
-                        showStartTime === showDetails.showTime
+                        show.showId === showId
                           ? "bg-primary text-white"
                           : "border hover:bg-gray-100"
                       }`}
                       onClick={() =>
-                        handleShowTimeClick(showStartTime.showStartTime)
+                        handleShowTimeClick(show.showStartTime, show.showId)
                       }
                     >
-                      {showStartTime.showStartTime.split("T")[1].slice(0, -3)}
+                      {show.showStartTime.split("T")[1].slice(0, -3)}
                     </button>
-                  ))}
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    Không có suất chiếu khác
+                  </span>
+                )}
               </div>
             </div>
 
@@ -265,91 +369,90 @@ export default function SeatSelectionPage({ params }) {
 
                 {/* Seat Grid */}
                 <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-[auto_repeat(16,minmax(24px,1fr))_auto] gap-[2px]">
-                    {/* Row Headers */}
-                    <div className="font-medium text-center"></div>
-                    {columns.map((col) => (
-                      <div
-                        key={`header-${col}`}
-                        className="text-[10px] text-center"
-                      >
-                        {col}
-                      </div>
-                    ))}
-                    <div className="font-medium text-center"></div>
-
-                    {/* Seats */}
-                    {rows.map((row) => (
-                      <>
-                        <div
-                          key={`row-${row}`}
-                          className="font-medium text-center self-center"
-                        >
-                          {row}
-                        </div>
-                        {columns.map((col) => {
-                          const unavailable = isSeatUnavailable(row, col);
-                          const selected = isSeatSelected(row, col);
-                          const couple = isSeatCouple(row, col);
-
-                          return (
-                            <button
-                              key={`seat-${row}${col}`}
-                              disabled={unavailable}
-                              onClick={() => handleSeatClick(row, col)}
-                              className={`
-                              w-6 h-6 flex items-center justify-center text-[10px] rounded-sm m-auto
-                              ${
-                                unavailable
-                                  ? "bg-red-500 text-white cursor-not-allowed"
-                                  : selected
-                                  ? "bg-orange-500 text-white"
-                                  : "bg-white border border-gray-300 hover:bg-gray-100"
-                              }
-                            `}
-                            >
-                              {unavailable ? "X" : ""}
-                            </button>
-                          );
-                        })}
-                        <div
-                          key={`row-end-${row}`}
-                          className="font-medium text-center self-center"
-                        >
-                          {row}
-                        </div>
-                      </>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-[auto_repeat(8,minmax(48px,1fr))_auto] gap-[2px]">
-                    <div className="font-medium text-center">P</div>
-                    {columns.slice(0, columns.length / 2).map((col) => {
-                      const row = "P";
-                      const unavailable = isSeatUnavailable(row, col);
-                      const selected = isSeatSelected(row, col);
-
-                      return (
-                        <button
-                          key={`seat-${row}${col}`}
-                          disabled={unavailable}
-                          onClick={() => handleSeatClick(row, col)}
-                          className={`
-                              w-12 h-6 flex items-center justify-center text-[10px] rounded-sm m-auto
-                              ${
-                                unavailable
-                                  ? "bg-red-500 text-white cursor-not-allowed"
-                                  : selected
-                                  ? "bg-orange-500 text-white"
-                                  : "bg-white border border-gray-300 hover:bg-gray-100"
-                              }
-                            `}
-                        >
-                          {unavailable ? "X" : ""}
-                        </button>
+                  {/* Regular Seats (Rows A-N) */}
+                  {sortedRows.map((row) => {
+                    // Sort seats by column number
+                    const rowSeats = seatsByRow[row].sort((a, b) => {
+                      const aNum = Number.parseInt(
+                        a.cinemaHallSeat.seatName.replace(/^[A-Z]+/i, "")
                       );
-                    })}
-                    <div className="font-medium text-center">P</div>
+                      const bNum = Number.parseInt(
+                        b.cinemaHallSeat.seatName.replace(/^[A-Z]+/i, "")
+                      );
+                      return aNum - bNum;
+                    });
+
+                    return (
+                      <div key={row} className="flex items-center">
+                        <div className="w-8 font-medium text-center">{row}</div>
+                        <div className="flex flex-1 gap-1 justify-center">
+                          {rowSeats.map((seat) => {
+                            const seatName = seat.cinemaHallSeat.seatName;
+                            const isUnavailable = seat.seatState === "HELD";
+                            const isSelected = isSeatSelected(seatName);
+                            const isCouple =
+                              seat.cinemaHallSeat.seatType === "COUPLE";
+
+                            return (
+                              <button
+                                key={seat.showSeatId}
+                                disabled={isUnavailable}
+                                onClick={() => handleSeatClick(seat)}
+                                className={`
+                                  ${isCouple ? "w-12" : "w-6"} 
+                                  h-6 flex items-center justify-center text-[10px] rounded-sm
+                                  ${
+                                    isUnavailable
+                                      ? "bg-red-500 text-white cursor-not-allowed"
+                                      : isSelected
+                                      ? "bg-orange-500 text-white"
+                                      : isCouple
+                                      ? "bg-white border-2 border-pink-300 hover:bg-gray-100"
+                                      : "bg-white border border-gray-300 hover:bg-gray-100"
+                                  }
+                                `}
+                              >
+                                {isUnavailable ? "X" : ""}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="w-8 font-medium text-center">{row}</div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Last Row with Couple Seats (Row O) */}
+                  <div className="flex items-center mt-4">
+                    <div className="w-8 font-medium text-center">O</div>
+                    <div className="flex flex-1 gap-2 justify-center">
+                      {coupleSeats.map((seat) => {
+                        const seatName = seat.cinemaHallSeat.seatName;
+                        const isUnavailable = seat.seatState === "HELD";
+                        const isSelected = isSeatSelected(seatName);
+
+                        return (
+                          <button
+                            key={seat.showSeatId}
+                            disabled={isUnavailable}
+                            onClick={() => handleSeatClick(seat)}
+                            className={`
+                              w-12 h-6 flex items-center justify-center text-[10px] rounded-sm
+                              ${
+                                isUnavailable
+                                  ? "bg-red-500 text-white cursor-not-allowed"
+                                  : isSelected
+                                  ? "bg-orange-500 text-white"
+                                  : "bg-white border-2 border-pink-300 hover:bg-gray-100"
+                              }
+                            `}
+                          >
+                            {isUnavailable ? "X" : seatName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="w-8 font-medium text-center">O</div>
                   </div>
                 </div>
 
@@ -365,7 +468,7 @@ export default function SeatSelectionPage({ params }) {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border border-gray-300 bg-white rounded-sm"></div>
+                    <div className="w-4 h-4 border-2 border-pink-300 bg-white rounded-sm"></div>
                     <span className="text-sm">Ghế đôi</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -382,8 +485,8 @@ export default function SeatSelectionPage({ params }) {
             <div className="border rounded-lg overflow-hidden">
               <div className="relative aspect-video">
                 <MyImage
-                  path={showDetails.movieThumbnail}
-                  alt={showDetails.movieName}
+                  path={showDetails?.movieThumbnail || ""}
+                  alt={showDetails?.movieName || "Movie poster"}
                   width={134}
                   height={200}
                   className="object-cover"
@@ -392,20 +495,25 @@ export default function SeatSelectionPage({ params }) {
               <div className="p-4">
                 <div className="flex items-start gap-2">
                   <h2 className="text-lg font-semibold">
-                    {showDetails.movieName}
+                    {showDetails?.movieName || "Movie Title"}
                   </h2>
                 </div>
 
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Rạp:</span>
-                    <span className="text-sm font-medium">{cinemaHall}</span>
+                    <span className="text-sm font-medium">
+                      {cinemaHall || "Cinema Hall"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Suất:</span>
                     <span className="text-sm font-medium">
-                      {showTime.split("T")[1]} -{" "}
-                      {formatDate(showTime.split("T")[0])}
+                      {showTime
+                        ? `${showTime.split("T")[1]} - ${formatDate(
+                            showTime.split("T")[0]
+                          )} `
+                        : "Show Time"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -437,15 +545,14 @@ export default function SeatSelectionPage({ params }) {
         <div className="container flex items-center justify-between">
           <Button
             variant="outline"
-            onClick={() => router.push(`/booking/${showDetails.movieId}`)}
+            onClick={() =>
+              router.push(`/booking/${showDetails?.movieId || id}`)
+            }
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             Quay lại
           </Button>
-          <Button
-            disabled={selectedSeats.length === 0}
-            onClick={() => handleSubmit()}
-          >
+          <Button disabled={selectedSeats.length === 0} onClick={handleSubmit}>
             Tiếp tục
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
