@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 @Builder
 public class PaymentEntity extends BaseEntity {
     @Id
+    @Column(name = "transaction_id")
     String transactionId;
 
     @OneToOne(fetch = FetchType.LAZY)

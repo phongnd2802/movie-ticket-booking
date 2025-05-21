@@ -8,7 +8,7 @@ import java.util.*;
 
 public class VNPAYConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_HashSecret = "TBBJ9M7CGMOK04YNXACUHTRUFP0N9618";
+    public static String vnp_HashSecret = "xxxxxxxxxxxxxxxxxxxxx";
 
     public static String hashAllFields(Map fields) {
         List fieldNames = new ArrayList(fields.keySet());
