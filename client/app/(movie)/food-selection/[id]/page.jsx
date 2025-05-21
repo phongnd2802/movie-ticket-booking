@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Plus, Minus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSeat } from "@/contexts/booking-context";
 import axios from "axios";
-import { getAllFood } from "@/endpoint/auth";
+import { booking, getAllFood } from "@/endpoint/auth";
 import { getRefreshToken } from "@/lib/auth/token";
 
 export default function FoodSelectionPage({ params }) {
@@ -338,7 +338,9 @@ export default function FoodSelectionPage({ params }) {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Ghế:</span>
-                      <span>{inforBooking.seatIds.join(", ")}</span>
+                      <span>
+                        {inforBooking.seatIds.map((seat) => seat.id).join(", ")}
+                      </span>
                     </div>
                   </div>
 

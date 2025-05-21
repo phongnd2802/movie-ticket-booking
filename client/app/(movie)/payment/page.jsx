@@ -57,7 +57,6 @@ export default function CheckoutPage() {
     if (response.status === 200) {
       if (response.data.code === 20000) {
         const vnpUrl = response.data.metadata.vnpUrl;
-        window.location.href = vnpUrl;
       } else {
         alert("Thanh toán không thành công");
       }
