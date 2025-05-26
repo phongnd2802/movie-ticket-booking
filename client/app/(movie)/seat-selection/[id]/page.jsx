@@ -178,17 +178,6 @@ export default function SeatSelectionPage({ params }) {
       return;
     }
 
-    // Cập nhật thông tin đặt vé
-    setInforBooking({
-      seatIds: selectedSeats,
-      cinemaHall,
-      showId: showTime,
-      movieName: showDetails.movieName,
-      movieImage: showDetails.movieThumbnail,
-      cartfood: [],
-      totalPrice: getTotalPrice(),
-    });
-
     try {
       // Gửi yêu cầu đặt ghế
       const bookingResponse = await axiosClient.post(
@@ -218,25 +207,19 @@ export default function SeatSelectionPage({ params }) {
         toast.error("Không nhận được bookingId từ server.");
         return;
       }
+      setInforBooking({
+        seatIds: selectedSeats,
+        cinemaHall,
+        showId: showTime,
+        movieName: showDetails.movieName,
+        movieImage: showDetails.movieThumbnail,
+        cartfood: [],
+        totalPrice: getTotalPrice(),
+        bookingId: bookingId,
+      });
 
       // Gửi yêu cầu thanh toán
-      const paymentResponse = await axiosClient.post(
-        paymentBooking,
-        {
-          bookingId: bookingId,
-          amount: getTotalPrice(),
-        },
-        {}
-      );
-      console.log(paymentResponse);
-      if (paymentResponse.status === 200) {
-        if (paymentResponse.data.code === 20000) {
-          router.push(paymentResponse.data.metadata);
-          toast.success("Đặt vé và thanh toán thành công!");
-        } else {
-          console.error("Lỗi khi đặt ghế hoặc thanh toán:", error);
-        }
-      }
+      router.push(`/food-selection/${id}`);
     } catch (error) {
       console.error("Lỗi khi đặt ghế hoặc thanh toán:", error);
       toast.error("Có lỗi xảy ra. Vui lòng thử lại.");

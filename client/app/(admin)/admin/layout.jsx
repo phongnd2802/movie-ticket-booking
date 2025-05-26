@@ -37,8 +37,8 @@ export default function AdminLayout({ children }) {
       icon: Calendar,
     },
     {
-      name: "Actor",
-      href: "/admin/actor",
+      name: "Home",
+      href: "/",
       icon: Users,
     },
     // {

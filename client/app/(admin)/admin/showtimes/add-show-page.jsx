@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axiosClient from "@/lib/auth/axiosClient";
 import { useMovie } from "@/hooks/useMovie";
+import { createShow, getAllCinemal, getAllCinemalHall } from "@/endpoint/auth";
 
 // Enum for seat types as specified
 const SeatTypeEnum = {
@@ -52,12 +53,13 @@ export default function AddShowComponent() {
       try {
         setLoading(true);
 
-        const cinemasResponse = await axiosClient.get("/api/cinemas");
-        const hallsResponse = await axiosClient.get("/api/cinema-halls");
+        const cinemasResponse = await axiosClient.get(getAllCinemal);
 
-        if (cinemasResponse.status === 200 && hallsResponse.status === 200) {
-          setCinemas(cinemasResponse.data.metadata.cinemas || []);
-          setCinemaHalls(hallsResponse.data.metadata.cinemaHalls || []);
+        if (
+          cinemasResponse.status === 200 &&
+          cinemasResponse.data.code === 20000
+        ) {
+          setCinemas(cinemasResponse.data.metadata || []);
         }
 
         setLoading(false);
@@ -71,31 +73,40 @@ export default function AddShowComponent() {
   }, []);
 
   useEffect(() => {
-    if (formData.cinemaId) {
-      const halls = cinemaHalls.filter(
-        (hall) => hall.cinemaId.toString() === formData.cinemaId
-      );
-      setFilteredHalls(halls);
-
-      if (
-        formData.cinemaHallId &&
-        !halls.some(
-          (hall) => hall.cinemaHallId.toString() === formData.cinemaHallId
-        )
-      ) {
-        setFormData((prev) => ({
-          ...prev,
-          cinemaHallId: "",
-        }));
+    const fetchCinemaHalls = async () => {
+      if (!formData.cinemaId) {
+        setFilteredHalls([]);
+        setFormData((prev) => ({ ...prev, cinemaHallId: "" }));
+        return;
       }
-    } else {
-      setFilteredHalls([]);
-      setFormData((prev) => ({
-        ...prev,
-        cinemaHallId: "",
-      }));
-    }
-  }, [formData.cinemaId, cinemaHalls]);
+
+      try {
+        const response = await axiosClient.get(
+          getAllCinemalHall(formData.cinemaId)
+        );
+
+        if (response.status === 200 && response.data.code === 20000) {
+          const halls = response.data.metadata || [];
+          setFilteredHalls(halls);
+
+          // Reset hallId nếu không còn hợp lệ
+          if (
+            formData.cinemaHallId &&
+            !halls.some(
+              (hall) => hall.cinemaHallId.toString() === formData.cinemaHallId
+            )
+          ) {
+            setFormData((prev) => ({ ...prev, cinemaHallId: "" }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch cinema halls:", error);
+        setFilteredHalls([]);
+      }
+    };
+
+    fetchCinemaHalls();
+  }, [formData.cinemaId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -126,8 +137,8 @@ export default function AddShowComponent() {
         seatPrices: formData.seatPrices,
       };
 
-      const response = await axiosClient.post("/api/shows", showData);
-
+      const response = await axiosClient.post(createShow, showData);
+      console.log("response::::", response);
       if (response.status === 200 || response.status === 201) {
         setIsOpen(false);
         resetForm();
@@ -233,7 +244,7 @@ export default function AddShowComponent() {
                       key={cinema.cinemaId}
                       value={cinema.cinemaId.toString()}
                     >
-                      {cinema.name}
+                      {cinema.cinemaName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -267,7 +278,7 @@ export default function AddShowComponent() {
                         key={hall.cinemaHallId}
                         value={hall.cinemaHallId.toString()}
                       >
-                        {hall.name}
+                        {hall.cinemaHallName}
                       </SelectItem>
                     ))
                   ) : (

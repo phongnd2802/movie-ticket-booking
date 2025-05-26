@@ -122,6 +122,26 @@ export default function FoodSelectionPage({ params }) {
   };
 
   const handleSubmit = () => {
+    // Cập nhật thông tin đặt vé
+
+    // const paymentResponse = await axiosClient.post(
+    //     paymentBooking,
+    //     {
+    //       bookingId: bookingId,
+    //       amount: getTotalPrice(),
+    //     },
+    //     {}
+    //   );
+    //   console.log(paymentResponse);
+    //   if (paymentResponse.status === 200) {
+    //     if (paymentResponse.data.code === 20000) {
+    //       router.push(paymentResponse.data.metadata);
+    //       toast.success("Đặt vé và thanh toán thành công!");
+    //     } else {
+    //       console.error("Lỗi khi đặt ghế hoặc thanh toán:", error);
+    //     }
+    //   }
+
     const price = getTotalPrice();
     setInforBooking((prev) => ({
       ...prev,

@@ -42,6 +42,11 @@ const conformPayment = `${BACKEND_URL}/api/v1/payment/vnpay-callback`;
 
 const searchURL = `${BACKEND_URL}/api/v1/search`;
 
+const getAllCinemal = `${BACKEND_URL}/api/v1/admin/cinema`;
+const getAllCinemalHall = (id) =>
+  `${BACKEND_URL}/api/v1/admin/cinema/hall/${id}`;
+
+const createShow = `${BACKEND_URL}/api/v1/admin/show`;
 export {
   login,
   getTtl,
@@ -63,4 +68,7 @@ export {
   paymentBooking,
   conformPayment,
   searchURL,
+  getAllCinemal,
+  getAllCinemalHall,
+  createShow,
 };

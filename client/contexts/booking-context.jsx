@@ -11,6 +11,7 @@ const defaultBookingInfo = {
   movieImage: "",
   cartfood: [],
   totalPrice: 0,
+  bookingId: "",
 };
 
 // Create context
