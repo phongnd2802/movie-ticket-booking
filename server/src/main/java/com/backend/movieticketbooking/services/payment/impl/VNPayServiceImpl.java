@@ -2,16 +2,26 @@ package com.backend.movieticketbooking.services.payment.impl;
 
 import com.backend.movieticketbooking.common.ErrorCode;
 import com.backend.movieticketbooking.configs.VNPAYConfig;
+import com.backend.movieticketbooking.dtos.booking.BookingDTO;
 import com.backend.movieticketbooking.dtos.payment.PaymentDTO;
+import com.backend.movieticketbooking.dtos.show.ShowSeatDTO;
+import com.backend.movieticketbooking.dtos.show.response.GetShowResponse;
 import com.backend.movieticketbooking.entities.booking.BookingEntity;
 import com.backend.movieticketbooking.entities.booking.PaymentEntity;
+import com.backend.movieticketbooking.entities.show.ShowSeatEntity;
+import com.backend.movieticketbooking.enums.BookingStateEnum;
 import com.backend.movieticketbooking.enums.PaymentStatusEnum;
+import com.backend.movieticketbooking.enums.SeatStateEnum;
 import com.backend.movieticketbooking.exceptions.BadRequestException;
+import com.backend.movieticketbooking.mapper.CinemaHallSeatMapper;
 import com.backend.movieticketbooking.repositories.BookingRepository;
 import com.backend.movieticketbooking.repositories.PaymentRepository;
+import com.backend.movieticketbooking.repositories.ShowSeatRepository;
+import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
 import com.backend.movieticketbooking.services.payment.PaymentService;
 import com.backend.movieticketbooking.utils.SnowflakeGenerator;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +31,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class VNPayServiceImpl implements PaymentService {
     private static final String VNP_VERSION = "2.1.0";
     private static final String VNP_COMMAND = "pay";
@@ -30,7 +42,7 @@ public class VNPayServiceImpl implements PaymentService {
     private static final String ORDER_TYPE = "other";
     private static final String CURRENCY_CODE = "VND";
     private static final String LOCALE = "vn";
-    private static final String RETURN_URL = "http://localhost:8080/api/v1/payment/vn-pay-callback";
+    private static final String RETURN_URL = "https://devguystory.io.vn/payment/callback";
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final int EXPIRY_MINUTES = 15;
     private static final int AMOUNT_MULTIPLIER = 100;
@@ -44,13 +56,33 @@ public class VNPayServiceImpl implements PaymentService {
     @Autowired
     BookingRepository bookingRepository;
 
+    @Autowired
+    CinemaHallSeatMapper cinemaHallSeatMapper;
+
+    @Autowired
+    ShowSeatRepository showSeatRepository;
+
+    @Autowired
+    DistributedCacheService distributedCacheService;
     @Override
     public String createPaymentUrl(PaymentDTO paymentRequest, HttpServletRequest request) {
         Map<String, String> params = initializeParameters(paymentRequest, request);
-        Optional<BookingEntity> bookingEntity = bookingRepository.findById(paymentRequest.getBookingId());
+        Optional<BookingEntity> bookingEntity = bookingRepository.findByBookingId((paymentRequest.getBookingId()));
         if (bookingEntity.isEmpty()) {
             throw new BadRequestException(ErrorCode.BOOKING_NOT_FOUND);
         }
+        BookingEntity booking = bookingEntity.get();
+        if (booking.getBookingTotalPrice().compareTo(BigDecimal.valueOf(paymentRequest.getAmount())) != 0 ) {
+            throw new BadRequestException(ErrorCode.PAYMENT_AMOUNT_NOT_MATCH);
+        }
+
+        if (booking.getBookingState() != BookingStateEnum.PENDING) {
+            throw new BadRequestException(ErrorCode.BOOKING_NOT_ELIGIBLE_FOR_PAYMENT);
+        }
+
+        log.info("Creating payment for bookingId: {}, amount: {}, txnRef: {}",
+                paymentRequest.getBookingId(), paymentRequest.getAmount(), params.get("vnp_TxnRef"));
+
         PaymentEntity paymentEntity = PaymentEntity.builder()
                 .transactionId(params.get("vnp_TxnRef"))
                 .paymentMethod("VNPay")
@@ -64,6 +96,111 @@ public class VNPayServiceImpl implements PaymentService {
         String queryString = buildQueryString(params);
         String secureHash = generateSecureHash(queryString);
         return VNPAYConfig.vnp_PayUrl + "?" + queryString + "&vnp_SecureHash=" + secureHash;
+    }
+
+    @Override
+    public BookingDTO processPayment(HttpServletRequest request) {
+        Map<String, String> fields = extractVNPayParams(request);
+        log.info(fields.toString());
+        String vnp_SecureHash = fields.remove("vnp_SecureHash");
+        fields.remove("vnp_SecureHashType");
+        String generatedHash = VNPAYConfig.hashAllFields(fields);
+
+//        if (!vnp_SecureHash.equals(generatedHash)) {
+//            throw new BadRequestException(ErrorCode.INVALID_SIGNATURE);
+//        }
+
+        String transactionId = fields.get("vnp_TxnRef");
+        String responseCode = fields.get("vnp_ResponseCode");
+
+        PaymentEntity payment = paymentRepository.findById(transactionId)
+                .orElseThrow(() -> new BadRequestException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        BookingEntity booking = payment.getBooking();
+        if ("00".equals(responseCode)) {
+            payment.setPaymentStatus(PaymentStatusEnum.PAID);
+            booking.setBookingState(BookingStateEnum.CONFIRMED);
+
+            // Update seats
+            List<ShowSeatEntity> seats = booking.getShowSeats();
+            seats.forEach(seat -> {
+                seat.setSeatState(SeatStateEnum.OCCUPIED);
+            });
+            showSeatRepository.saveAll(seats);
+
+            updateShowSeatCache(booking.getShow().getShowId(), booking.getShowSeats(), SeatStateEnum.OCCUPIED);
+        } else {
+            payment.setPaymentStatus(PaymentStatusEnum.FAILED);
+            booking.setBookingState(BookingStateEnum.FAILED);
+
+            // Release Seats
+            List<ShowSeatEntity> seats = booking.getShowSeats();
+            seats.forEach(seat -> {
+                seat.setSeatState(SeatStateEnum.AVAILABLE);
+            });
+            showSeatRepository.saveAll(seats);
+
+            updateShowSeatCache(booking.getShow().getShowId(), booking.getShowSeats(), SeatStateEnum.AVAILABLE);
+        }
+        paymentRepository.save(payment);
+        return buildBookingDTO(booking);
+    }
+
+
+    private void updateShowSeatCache(int showId, List<ShowSeatEntity> seats, SeatStateEnum seatState) {
+        GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(showId), GetShowResponse.class);
+        if (showCached != null) {
+            seats.forEach(heldSeatId -> {
+                showCached.getSeats().forEach(seat -> {
+                    if (heldSeatId.equals(seat.getShowSeatId())) {
+                        seat.setSeatState(seatState);
+                    }
+                });
+            });
+
+            distributedCacheService.setObjectTTL(getShowSeatKey(showId), showCached, 5L, TimeUnit.MINUTES);
+            log.info("Updated cached show for showId={}", showId);
+        }
+    }
+
+    private String getShowSeatKey(int showId) {
+        return "show:" + showId;
+    }
+
+    private BookingDTO buildBookingDTO(BookingEntity booking) {
+        return BookingDTO.builder()
+                .bookingId(booking.getBookingId())
+                .bookingTotalPrice(booking.getBookingTotalPrice())
+                .bookingNumberOfSeats(booking.getBookingNumberOfSeats())
+                .bookingState(booking.getBookingState())
+                .bookingNumberOfSeats(booking.getBookingNumberOfSeats())
+                .showSeats(buildShowSeatDTOs(booking.getShowSeats()))
+                .build();
+    }
+
+    private List<ShowSeatDTO> buildShowSeatDTOs(List<ShowSeatEntity> showSeatEntities) {
+        List<ShowSeatDTO> showSeatDTOs = new ArrayList<>();
+        showSeatEntities.forEach(seatEntity -> {
+            ShowSeatDTO showSeat = ShowSeatDTO.builder()
+                    .showSeatId(seatEntity.getShowSeatId())
+                    .seatState(seatEntity.getSeatState())
+                    .cinemaHallSeat(cinemaHallSeatMapper.toCinemaHallSeatDTO(seatEntity.getCinemaHallSeat()))
+                    .build();
+
+            showSeatDTOs.add(showSeat);
+        });
+
+        return showSeatDTOs;
+    }
+
+    private Map<String, String> extractVNPayParams(HttpServletRequest request) {
+        Map<String, String> result = new HashMap<>();
+        request.getParameterMap().forEach((key, values) -> {
+            if (key.startsWith("vnp_")) {
+                result.put(key, values[0]);
+            }
+        });
+        return result;
     }
 
     private Map<String, String> initializeParameters(PaymentDTO paymentRequest, HttpServletRequest request) {

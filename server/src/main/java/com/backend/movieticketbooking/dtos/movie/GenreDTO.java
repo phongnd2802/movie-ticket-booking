@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class GenreDTO {
+    private int genreId;
     private String genreName;
 }

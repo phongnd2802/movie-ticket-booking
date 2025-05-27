@@ -41,13 +41,13 @@ export default function Movie({
           alt={title}
           width={width}
           height={height}
-          className="rounded-md transition-transform duration-300 group-hover:scale-105"
+          className="rounded-md transition-transform duration-300 group-hover:scale-105 w-full h-auto object-cover"
         />
 
         {(trailer || ticket) && (
           <div
             className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center gap-4
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-full h-auto object-cover"
           >
             {ticket && (
               <Link

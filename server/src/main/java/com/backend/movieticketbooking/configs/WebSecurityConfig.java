@@ -67,6 +67,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/show/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/booking/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/payment/**").hasAuthority("CUSTOMER")
+                        .requestMatchers("/search/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

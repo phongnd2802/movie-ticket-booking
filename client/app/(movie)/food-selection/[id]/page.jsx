@@ -7,8 +7,10 @@ import { ChevronLeft, ChevronRight, Plus, Minus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSeat } from "@/contexts/booking-context";
 import axios from "axios";
-import { getAllFood } from "@/endpoint/auth";
+import { booking, bookingFood, getAllFood } from "@/endpoint/auth";
 import { getRefreshToken } from "@/lib/auth/token";
+import { paymentBooking } from "@/endpoint/auth";
+import axiosClient from "@/lib/auth/axiosClient";
 
 export default function FoodSelectionPage({ params }) {
   const { inforBooking, setInforBooking } = useSeat();
@@ -51,6 +53,7 @@ export default function FoodSelectionPage({ params }) {
         });
         if (response.status === 200) {
           setFood(response.data.metadata);
+          console.log("foood::::", response.data.metadata);
         } else {
           console.error("Error fetching food:", response.data.message);
         }
@@ -121,7 +124,27 @@ export default function FoodSelectionPage({ params }) {
       .replace("₫", " ₫");
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (cart.length === 0) {
+      router.push(`/payment`);
+      return;
+    }
+    const firstFood = cart[0];
+    const payload = {
+      bookingId: inforBooking.bookingId,
+      foods: {
+        [firstFood.foodId]: 1,
+      },
+    };
+    console.log("payload:", payload);
+    const bookingFoodRes = await axiosClient.patch(bookingFood, payload, {});
+    console.log(bookingFoodRes);
+    if (bookingFoodRes.status !== 200 || bookingFoodRes.data.code !== 20000) {
+      console.error("Lỗi khi đặt ghế hoặc thanh toán:", bookingFoodRes);
+      // router.push(`/`);
+      return;
+    }
+
     const price = getTotalPrice();
     setInforBooking((prev) => ({
       ...prev,
@@ -129,6 +152,7 @@ export default function FoodSelectionPage({ params }) {
       cartfood: cart,
     }));
     setReadyToRedirect(true);
+    router.push(`/payment `);
   };
 
   useEffect(() => {
@@ -338,7 +362,9 @@ export default function FoodSelectionPage({ params }) {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Ghế:</span>
-                      <span>{inforBooking.seatIds.join(", ")}</span>
+                      <span>
+                        {inforBooking.seatIds.map((seat) => seat.id).join(", ")}
+                      </span>
                     </div>
                   </div>
 

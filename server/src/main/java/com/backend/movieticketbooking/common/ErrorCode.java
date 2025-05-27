@@ -45,6 +45,11 @@ public enum ErrorCode {
 
     SEAT_IS_HELD(40034, "Seat is held"),
     BOOKING_NOT_FOUND(40035, "Booking not found"),
+    PAYMENT_AMOUNT_NOT_MATCH(40036, "Payment amount not match"),
+    BOOKING_NOT_ELIGIBLE_FOR_PAYMENT(40037, "Booking not eligible for payment"),
+    INVALID_SIGNATURE(40038, "Invalid signature"),
+    PAYMENT_NOT_FOUND(40039, "Payment not found"),
+    FOOD_NOT_FOUND(40040, "Food not found"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;

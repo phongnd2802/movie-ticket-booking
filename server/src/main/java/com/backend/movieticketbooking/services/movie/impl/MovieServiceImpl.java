@@ -178,6 +178,16 @@ public class MovieServiceImpl implements MovieService {
                 .build();
     }
 
+    @Override
+    public MovieHome searchMovieByTitle(String keyword) {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<MovieEntity> resultMovies = movieRepository.findByMovieNameContainingIgnoreCase(keyword, pageable).getContent();
+        return MovieHome.builder()
+                .movies(resultMovies.stream().map(movieMapper::toMovieHomeRes).collect(Collectors.toList()))
+                .build();
+
+    }
+
     private String getMovieKey(int movieId) {
         return "movie:" + movieId;
     }

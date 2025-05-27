@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import TicketConfirmationModal from "@/components/booking/ticket-confirmation-modal";
 import { useState } from "react";
-import axios from "axios";
 import axiosClient from "@/lib/auth/axiosClient";
 import { vnpay } from "@/endpoint/auth";
 export default function CheckoutPage() {
@@ -47,17 +46,17 @@ export default function CheckoutPage() {
     setOpenModal(true);
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     const paymentData = {
-      bookingId: "1",
-      amount: inforBooking.seatsId.length,
-      bankCode: "123456",
+      bookingId: inforBooking.bookingId,
+      amount: inforBooking.totalPrice,
     };
-    const response = axiosClient.post(vnpay, paymentData);
+    const response = await axiosClient.post(vnpay, paymentData);
+    console.log("response", response);
     if (response.status === 200) {
       if (response.data.code === 20000) {
-        const vnpUrl = response.data.metadata.vnpUrl;
-        window.location.href = vnpUrl;
+        const vnpUrl = response.data.metadata;
+        router.push(vnpUrl);
       } else {
         alert("Thanh toán không thành công");
       }
@@ -108,6 +107,7 @@ export default function CheckoutPage() {
             isOpen={handleModalOpen}
             onClose={handleModalClose}
             ticketInfo={inforBooking}
+            onPayment={handlePayment}
           />
         )}
         {/* Left Column - Payment Options */}
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-medium mb-4">Phương thức thanh toán</h2>
             <RadioGroup defaultValue="onepay" className="space-y-4">
               <div className="flex items-center space-x-2 border p-3 rounded-md">
-                <RadioGroupItem value="onepay" id="onepay" />
+                <RadioGroupItem value="onepay" id="onepay" disabled />
                 <Label htmlFor="onepay" className="flex items-center">
                   <Image
                     src="/onepay-logo.png"
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex items-center space-x-2 border p-3 rounded-md">
-                <RadioGroupItem value="shopeepay" id="shopeepay" />
+                <RadioGroupItem value="shopeepay" id="shopeepay" disabled />
                 <Label htmlFor="shopeepay" className="flex items-center">
                   <Image
                     src="/shopeepay-orange-logo.png"
@@ -181,7 +181,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex items-center space-x-2 border p-3 rounded-md">
-                <RadioGroupItem value="momo" id="momo" />
+                <RadioGroupItem value="momo" id="momo" disabled />
                 <Label htmlFor="momo" className="flex items-center">
                   <Image
                     src="/abstract-purple-wallet.png"
@@ -195,7 +195,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex items-center space-x-2 border p-3 rounded-md">
-                <RadioGroupItem value="zalopay" id="zalopay" />
+                <RadioGroupItem value="zalopay" id="zalopay" disabled />
                 <Label htmlFor="zalopay" className="flex items-center">
                   <Image
                     src="/zalopay-logo-display.png"
@@ -210,7 +210,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex items-center space-x-2 border p-3 rounded-md">
-                <RadioGroupItem value="payoo" id="payoo" />
+                <RadioGroupItem value="payoo" id="payoo" disabled />
                 <Label htmlFor="payoo" className="flex items-center">
                   <Image
                     src="/hsbc-payoo-partnership.png"

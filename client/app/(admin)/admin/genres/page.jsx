@@ -64,7 +64,6 @@ export default function GenresPage() {
   });
 
   useEffect(() => {
-    // Simulate API call to fetch genres
     const fetchGenres = async () => {
       try {
         setLoading(true);

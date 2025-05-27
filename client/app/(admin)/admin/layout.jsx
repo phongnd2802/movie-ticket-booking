@@ -37,15 +37,15 @@ export default function AdminLayout({ children }) {
       icon: Calendar,
     },
     {
-      name: "Genres",
-      href: "/admin/genres",
+      name: "Home",
+      href: "/",
       icon: Users,
     },
-    {
-      name: "Settings",
-      href: "/admin/settings",
-      icon: Settings,
-    },
+    // {
+    //   name: "Settings",
+    //   href: "/admin/settings",
+    //   icon: Settings,
+    // },
   ];
 
   return (

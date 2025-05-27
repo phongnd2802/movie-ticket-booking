@@ -1,9 +1,15 @@
 package com.backend.movieticketbooking.services.booking.impl;
 
 import com.backend.movieticketbooking.common.ErrorCode;
+import com.backend.movieticketbooking.dtos.booking.request.SelectFoodRequest;
 import com.backend.movieticketbooking.dtos.booking.request.SelectSeatsRequest;
 import com.backend.movieticketbooking.dtos.booking.response.SelectSeatsResponse;
+import com.backend.movieticketbooking.entities.booking.BookingEntity;
+import com.backend.movieticketbooking.entities.other.FoodEntity;
 import com.backend.movieticketbooking.exceptions.BadRequestException;
+import com.backend.movieticketbooking.exceptions.NotFoundException;
+import com.backend.movieticketbooking.repositories.BookingRepository;
+import com.backend.movieticketbooking.repositories.FoodRepository;
 import com.backend.movieticketbooking.services.booking.BookingService;
 import com.backend.movieticketbooking.services.booking.event.SeatHeldEvent;
 import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
@@ -17,10 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -39,6 +43,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    private BookingRepository bookingRepository;
+    @Autowired
+    private FoodRepository foodRepository;
 
     @Override
     public SelectSeatsResponse selectSeats(SelectSeatsRequest request, String userEmail) {
@@ -109,6 +117,32 @@ public class BookingServiceImpl implements BookingService {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean selectFood(SelectFoodRequest request) {
+        Optional<BookingEntity> bookingEntity = bookingRepository.findByBookingId(request.getBookingId());
+        if (bookingEntity.isEmpty()) {
+            throw new NotFoundException(ErrorCode.BOOKING_NOT_FOUND);
+        }
+
+        Set<Integer> foodIds = request.getFoods().keySet();
+        List<FoodEntity> foundFoods = foodRepository.findByFoodIdIn(new ArrayList<>(foodIds));
+        if (foundFoods.size() != request.getFoods().size()) {
+            throw new NotFoundException(ErrorCode.FOOD_NOT_FOUND);
+        }
+
+        BookingEntity booking = bookingEntity.get();
+
+        booking.setFoods(foundFoods);
+
+        int totalFoodPrice = foundFoods.stream()
+                .mapToInt(FoodEntity::getFoodPrice)
+                .sum();
+
+        booking.setBookingTotalPrice(booking.getBookingTotalPrice().add(BigDecimal.valueOf(totalFoodPrice)));
+        bookingRepository.save(booking);
+        return true;
     }
 
     private String getHoldSeatBookingKey(int showSeatId) {

@@ -49,7 +49,7 @@ export default function MovieDetailPage({ params }) {
         };
 
         const movieResponse = await mvRp();
-        console.log("movieResponse", movieResponse);
+        console.log("movie response:::", movieResponse);
         setMovieData(movieResponse.metadata);
 
         // Set initial active date based on first available show date

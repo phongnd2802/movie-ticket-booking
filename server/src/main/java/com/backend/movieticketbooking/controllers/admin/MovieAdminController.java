@@ -17,6 +17,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admin/movie")
 @RequiredArgsConstructor
@@ -41,6 +43,12 @@ public class MovieAdminController {
     public ApiResponse<ActorDTO> createActor(@ModelAttribute CreateActorRequest request) {
         ActorDTO result = actorService.createActor(request);
         return ApiResponse.success(result);
+    }
+
+    @GetMapping("/actor")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<List<ActorDTO>> getActors() {
+        return ApiResponse.success(actorService.getAllActors());
     }
 
     @PostMapping("")

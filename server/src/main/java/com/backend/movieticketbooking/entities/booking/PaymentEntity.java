@@ -17,10 +17,11 @@ import java.math.BigDecimal;
 @Builder
 public class PaymentEntity extends BaseEntity {
     @Id
+    @Column(name = "transaction_id")
     String transactionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id", nullable = false, unique = true)
     BookingEntity booking;
 
     BigDecimal amount;

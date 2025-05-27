@@ -1,26 +1,38 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { navItems } from "@/lib/data";
 import Navigation from "./navigation-menu";
 import MyImage from "./imagekit";
 import Image from "next/image";
-import { useRef } from "react";
 import axiosClient from "@/lib/auth/axiosClient";
 import { logout } from "@/endpoint/auth";
 import { deleteCookie } from "@/lib/cookie";
 import { useRouter } from "next/navigation";
-export default function Header({ isLogin: initialIsLogin = false }) {
+
+export default function Header({
+  isLogin: initialIsLogin = false,
+  onChange,
+  search,
+  handleSearch,
+  isSearchOpen,
+  setIsSearchOpen,
+}) {
   const [user, setUser] = useState(null);
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(initialIsLogin);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
+  // Add search states
+
+  const searchRef = useRef(null);
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
+    console.log(userData);
     if (userData) {
       setUser(JSON.parse(userData));
       setIsLoggedIn(true);
@@ -56,16 +68,34 @@ export default function Header({ isLogin: initialIsLogin = false }) {
       ) {
         setIsUserMenuOpen(false);
       }
+
+      // Close search when clicking outside
+      if (
+        isSearchOpen &&
+        searchRef.current &&
+        !searchRef.current.contains(event.target)
+      ) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    const handleEscKey = (event) => {
+      if (event.key === "Escape") {
+        setIsSearchOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscKey);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscKey);
     };
-  }, [isUserMenuOpen]);
+  }, [isUserMenuOpen, isSearchOpen]);
 
   return (
-    <header className="flex items-center justify-center p-6 ">
+    <header className="flex items-center justify-center p-6 relative">
       <div className="flex items-center justify-between w-full max-w-[85%] max-sm:max-w-[100%] max-lg:max-w-[80%] max-md:max-w-[85%] max-ssm:max-w-[90%]">
         <div className="flex items-center gap-6 max-md:hidden">
           <div>
@@ -126,17 +156,50 @@ export default function Header({ isLogin: initialIsLogin = false }) {
         </div>
 
         <div className="flex gap-4 items-center h-auto text-[#777777] max-lg:hidden hover:cursor-pointer">
-          <span>
-            <Search size={16} />
-          </span>
+          {/* Search icon and search box */}
+          <div className="relative" ref={searchRef}>
+            {isSearchOpen ? (
+              <div className="absolute right-0 top-[-10px] flex items-center">
+                <form onSubmit={handleSearch} className="flex items-center">
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={onChange}
+                    placeholder="Tìm kiếm..."
+                    className="border border-gray-300 rounded-l-md py-1 px-3 focus:outline-none focus:ring-1 focus:ring-orange-400 w-[200px]"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="bg-orange-500 text-white p-1 rounded-r-md hover:bg-orange-600"
+                  >
+                    <Search size={16} />
+                  </button>
+                </form>
+                <button
+                  onClick={() => setIsSearchOpen(false)}
+                  className="ml-2 text-gray-500 hover:text-gray-700"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <span onClick={() => setIsSearchOpen(true)}>
+                <Search
+                  size={16}
+                  className="hover:text-textOrange transition-colors"
+                />
+              </span>
+            )}
+          </div>
 
           {isLoggedIn ? (
-            <div className="relative">
+            <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center gap-3 hover:text-textOrange"
               >
-                <span>{user?.name || "Hoàng Thị Mỹ Linh"}</span>
+                <span>{user?.userName || "Hoàng Thị Mỹ Linh"}</span>
               </button>
 
               {isUserMenuOpen && (
@@ -157,7 +220,7 @@ export default function Header({ isLogin: initialIsLogin = false }) {
                           {user?.name || "Hoàng Thị Mỹ Linh"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {user?.email || "user@example.com"}
+                          {user?.userEmail || "user@example.com"}
                         </p>
                       </div>
                     </div>
@@ -194,6 +257,34 @@ export default function Header({ isLogin: initialIsLogin = false }) {
           )}
         </div>
       </div>
+
+      {/* Mobile search bar - shown at the bottom of header when search is open on mobile */}
+      {isSearchOpen && (
+        <div className="lg:hidden absolute bottom-0 left-0 right-0 bg-white p-2 shadow-md z-10">
+          <form onSubmit={handleSearch} className="flex items-center">
+            <input
+              type="text"
+              value={search}
+              onChange={handleSearch}
+              placeholder="Tìm kiếm..."
+              className="border border-gray-300 rounded-l-md py-1 px-3 focus:outline-none focus:ring-1 focus:ring-orange-400 flex-1"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="bg-orange-500 text-white p-1 rounded-r-md hover:bg-orange-600"
+            >
+              <Search size={16} />
+            </button>
+            <button
+              onClick={() => setIsSearchOpen(false)}
+              className="ml-2 text-gray-500 hover:text-gray-700"
+            >
+              <X size={16} />
+            </button>
+          </form>
+        </div>
+      )}
     </header>
   );
 }

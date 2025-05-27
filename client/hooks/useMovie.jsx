@@ -3,7 +3,6 @@ import { getAllMovie } from "@/endpoint/auth";
 import { getCookie } from "@/lib/cookie";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export function useMovie() {
   const [movies, setMovies] = useState([]);
@@ -43,5 +42,5 @@ export function useMovie() {
       console.log(err.message);
     }
   }, []);
-  return { movies, isAccess };
+  return { movies, isAccess, setMovies };
 }
