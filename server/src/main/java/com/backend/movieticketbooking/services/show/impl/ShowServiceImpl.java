@@ -22,12 +22,15 @@ import com.backend.movieticketbooking.repositories.ShowRepository;
 import com.backend.movieticketbooking.repositories.ShowSeatRepository;
 import com.backend.movieticketbooking.services.cache.distributed.DistributedCacheService;
 import com.backend.movieticketbooking.services.cache.local.LocalCacheService;
+import com.backend.movieticketbooking.services.movie.MovieService;
 import com.backend.movieticketbooking.services.movie.cache.models.MovieCache;
 import com.backend.movieticketbooking.services.show.ShowService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,25 +46,33 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ShowServiceImpl implements ShowService {
 
+    @Autowired
     MovieRepository movieRepository;
 
+    @Autowired
     CinemaHallRepository cinemaHallRepository;
 
+    @Autowired
     ShowRepository showRepository;
 
+    @Autowired
     ShowSeatRepository showSeatRepository;
 
+    @Autowired
     ShowMapper showMapper;
 
+    @Autowired
     DistributedCacheService distributedCacheService;
 
+    @Autowired
     CinemaHallSeatMapper cinemaHallSeatMapper;
 
-    LocalCacheService<String, MovieCache> movieLocalCache;
+    @Autowired
+    @Qualifier("movieLocalCacheService")
+    LocalCacheService<String, MovieCache> movieLocalCacheService;
 
     @Override
     @Transactional
@@ -124,12 +135,20 @@ public class ShowServiceImpl implements ShowService {
 
             showSeatRepository.saveAll(showSeatEntities);
 
+            MovieCache movieCache = MovieCache.toMovieCache(movie);
+
+            movieLocalCacheService.put(getMovieKey(movie.getMovieId()), movieCache);
+            distributedCacheService.setObjectTTL(getMovieKey(movie.getMovieId()), movieCache, 300L, TimeUnit.SECONDS);
+
             return showMapper.toCreateShowResponse(showEntity);
         } catch (DateTimeParseException e) {
             throw new BadRequestException(ErrorCode.INVALID_FORMAT_TIME);
         }
     }
 
+    private String getMovieKey(int movieId) {
+        return "movie:" + movieId;
+    }
     @Override
     public GetShowResponse getShowSeats(int showId) {
         GetShowResponse showCached = distributedCacheService.getObject(getShowSeatKey(showId), GetShowResponse.class);

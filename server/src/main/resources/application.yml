@@ -15,7 +15,7 @@ spring:
     hikari:
       maximum-pool-size: 20 # Số lượng tối đa kết nối
       minimum-idle: 5 # Số lượng kết nối tối thiểu trong pool
-    url: jdbc:postgresql://localhost:5555/movie-ticket-booking
+    url: jdbc:postgresql://14.225.207.77:5555/movie-ticket-booking
     username: postgres
     password: secret
     driver-class-name: org.postgresql.Driver
