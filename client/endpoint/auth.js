@@ -36,6 +36,7 @@ const addGenre = `${BACKEND_URL}/api/v1/admin/movie/genre`;
 
 const booking = `${BACKEND_URL}/api/v1/booking`;
 
+const bookingFood = `${BACKEND_URL}/api/v1/booking/food`;
 const paymentBooking = `${BACKEND_URL}/api/v1/payment/vnpay-create`;
 
 const conformPayment = `${BACKEND_URL}/api/v1/payment/vnpay-callback`;
@@ -71,4 +72,5 @@ export {
   getAllCinemal,
   getAllCinemalHall,
   createShow,
+  bookingFood,
 };

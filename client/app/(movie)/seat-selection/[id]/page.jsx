@@ -75,7 +75,7 @@ export default function SeatSelectionPage({ params }) {
 
   const handleSeatClick = (seat) => {
     if (!seat || seat.seatState === "UNAVAILABLE") return;
-
+    console.log(seat);
     const seatName = seat.cinemaHallSeat.seatName;
     const isSeatSelected = selectedSeats.some((s) => s.id === seatName);
 
@@ -83,7 +83,7 @@ export default function SeatSelectionPage({ params }) {
       setSelectedSeats(selectedSeats.filter((s) => s.id !== seatName));
     } else {
       // Determine price based on seat type
-      const price = seat.cinemaHallSeat.seatType === "COUPLE" ? 90000 : 45000;
+      const price = seat.showSeatPrice;
 
       setSelectedSeats([
         ...selectedSeats,

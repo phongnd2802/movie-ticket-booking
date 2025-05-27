@@ -24,17 +24,15 @@ export default function HomePage() {
   const handleSearch = async () => {
     if (search.trim()) {
       setIsSearchOpen(false);
-      console.log("clgt");
-      const response = await axios.post(searchURL, search, {
+
+      const response = await axios.get(`${searchURL}?k=${search}`, {
         headers: {
           "Content-Type": "application/json",
         },
       });
       if (response.status === 200 && response.data.code === 20000) {
-        setMovies(response.data.movie);
+        setMovies(response.data.metadata.movies);
       }
-      console.log("vô đây là oke rồi ");
-      setSearchQuery("");
     }
   };
 
