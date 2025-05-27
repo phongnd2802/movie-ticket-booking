@@ -42,7 +42,7 @@ public class VNPayServiceImpl implements PaymentService {
     private static final String ORDER_TYPE = "other";
     private static final String CURRENCY_CODE = "VND";
     private static final String LOCALE = "vn";
-    private static final String RETURN_URL = "http://localhost:3000/payment/callback";
+    private static final String RETURN_URL = "https://devguystory.io.vn/payment/callback";
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final int EXPIRY_MINUTES = 15;
     private static final int AMOUNT_MULTIPLIER = 100;

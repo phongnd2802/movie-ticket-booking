@@ -10,4 +10,5 @@ import java.util.List;
 
 public interface MovieRepository extends JpaRepository<MovieEntity, Integer> {
     Page<MovieEntity> findAllByOrderByMovieReleaseDateDesc(Pageable pageable);
+    Page<MovieEntity> findByMovieNameContainingIgnoreCase(String title, Pageable pageable);
 }

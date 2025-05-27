@@ -11,4 +11,5 @@ public interface MovieService {
     MovieDTO createMovie(CreateMovieRequest request);
     MovieCache getMovieById(int movieId);
     MovieHome getMovieHome(int limit, int offset);
+    MovieHome searchMovieByTitle(String keyword);
 }
