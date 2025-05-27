@@ -18,7 +18,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")  // Áp dụng cho tất cả các đường dẫn
-                .allowedOrigins("http://localhost:3000", "https://localhost:3000")  // Cho phép origin này
+                .allowedOrigins("http://localhost:3000", "https://localhost:3000", "https://devguystory.io.vn")  // Cho phép origin này
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")  // Thêm OPTIONS cho preflight request
                 .allowedHeaders("*")  // Cho phép tất cả các headers
                 .allowCredentials(true)  // Cho phép gửi cookies, thông tin xác thực
@@ -29,7 +29,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://localhost:3000", "https://devguystory.io.vn"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

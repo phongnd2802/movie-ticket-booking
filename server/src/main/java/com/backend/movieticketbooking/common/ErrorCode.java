@@ -49,6 +49,7 @@ public enum ErrorCode {
     BOOKING_NOT_ELIGIBLE_FOR_PAYMENT(40037, "Booking not eligible for payment"),
     INVALID_SIGNATURE(40038, "Invalid signature"),
     PAYMENT_NOT_FOUND(40039, "Payment not found"),
+    FOOD_NOT_FOUND(40040, "Food not found"),
     INTERNAL_SERVER_ERROR(50000, "internal server error");
 
     private final int code;
